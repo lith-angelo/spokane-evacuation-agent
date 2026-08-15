@@ -1,0 +1,130 @@
+{
+ "_meta": {
+  "origin": "authored",
+  "note": "Perimeter polygons for the scenario fires.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "geometryType": "esriGeometryPolygon",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID"
+  },
+  {
+   "name": "poly_IncidentName",
+   "type": "esriFieldTypeString",
+   "alias": "Name"
+  },
+  {
+   "name": "poly_GISAcres",
+   "type": "esriFieldTypeDouble",
+   "alias": "Acres"
+  },
+  {
+   "name": "poly_PolygonDateTime",
+   "type": "esriFieldTypeDate",
+   "alias": "PolyTime"
+  },
+  {
+   "name": "attr_IncidentName",
+   "type": "esriFieldTypeString",
+   "alias": "AttrName"
+  },
+  {
+   "name": "attr_PercentContained",
+   "type": "esriFieldTypeDouble",
+   "alias": "Contained"
+  },
+  {
+   "name": "attr_ModifiedOnDateTime_dt",
+   "type": "esriFieldTypeDate",
+   "alias": "Modified"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 910001,
+    "poly_IncidentName": "Rifle Club Fire",
+    "poly_GISAcres": 2840.0,
+    "poly_PolygonDateTime": 1786814013732,
+    "attr_IncidentName": "Rifle Club Fire",
+    "attr_PercentContained": 5.0,
+    "attr_ModifiedOnDateTime_dt": 1786814793732
+   },
+   "geometry": {
+    "rings": [
+     [
+      [
+       -117.6,
+       47.79
+      ],
+      [
+       -117.53,
+       47.788
+      ],
+      [
+       -117.518,
+       47.756
+      ],
+      [
+       -117.56,
+       47.738
+      ],
+      [
+       -117.61,
+       47.752
+      ],
+      [
+       -117.6,
+       47.79
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 910002,
+    "poly_IncidentName": "Deep Creek",
+    "poly_GISAcres": 610.0,
+    "poly_PolygonDateTime": 1786704513732,
+    "attr_IncidentName": "Deep Creek",
+    "attr_PercentContained": 40.0,
+    "attr_ModifiedOnDateTime_dt": 1786704513732
+   },
+   "geometry": {
+    "rings": [
+     [
+      [
+       -117.66,
+       47.685
+      ],
+      [
+       -117.615,
+       47.684
+      ],
+      [
+       -117.61,
+       47.66
+      ],
+      [
+       -117.655,
+       47.658
+      ],
+      [
+       -117.66,
+       47.685
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

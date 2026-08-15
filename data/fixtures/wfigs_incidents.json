@@ -1,0 +1,96 @@
+{
+ "_meta": {
+  "origin": "authored",
+  "note": "Scenario fires in the WFIGS incident layer's exact shape. Deep Creek carries a deliberately old timestamp to exercise staleness.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "geometryType": "esriGeometryPoint",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID"
+  },
+  {
+   "name": "IncidentName",
+   "type": "esriFieldTypeString",
+   "alias": "IncidentName"
+  },
+  {
+   "name": "IncidentSize",
+   "type": "esriFieldTypeDouble",
+   "alias": "IncidentSize"
+  },
+  {
+   "name": "PercentContained",
+   "type": "esriFieldTypeDouble",
+   "alias": "PercentContained"
+  },
+  {
+   "name": "FireDiscoveryDateTime",
+   "type": "esriFieldTypeDate",
+   "alias": "Discovered"
+  },
+  {
+   "name": "ModifiedOnDateTime_dt",
+   "type": "esriFieldTypeDate",
+   "alias": "Modified"
+  },
+  {
+   "name": "POOCounty",
+   "type": "esriFieldTypeString",
+   "alias": "POOCounty"
+  },
+  {
+   "name": "POOState",
+   "type": "esriFieldTypeString",
+   "alias": "POOState"
+  },
+  {
+   "name": "IncidentTypeCategory",
+   "type": "esriFieldTypeString",
+   "alias": "IncidentTypeCategory"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 900001,
+    "IncidentName": "Rifle Club Fire",
+    "IncidentSize": 2840.0,
+    "PercentContained": 5.0,
+    "FireDiscoveryDateTime": 1786747713732,
+    "ModifiedOnDateTime_dt": 1786814793732,
+    "POOCounty": "Spokane",
+    "POOState": "US-WA",
+    "IncidentTypeCategory": "WF"
+   },
+   "geometry": {
+    "x": -117.562,
+    "y": 47.763
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 900002,
+    "IncidentName": "Deep Creek",
+    "IncidentSize": 610.0,
+    "PercentContained": 40.0,
+    "FireDiscoveryDateTime": 1786643313732,
+    "ModifiedOnDateTime_dt": 1786704513732,
+    "POOCounty": "Spokane",
+    "POOState": "US-WA",
+    "IncidentTypeCategory": "WF"
+   },
+   "geometry": {
+    "x": -117.635,
+    "y": 47.672
+   }
+  }
+ ]
+}

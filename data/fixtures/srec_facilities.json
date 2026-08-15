@@ -1,0 +1,2267 @@
+{
+ "_meta": {
+  "origin": "captured",
+  "note": "Real SREC emergency response facilities around Spokane, saved verbatim.",
+  "built_at": "2026-08-15T17:49:32.568818+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "uniqueIdField": {
+  "name": "OBJECTID",
+  "isSystemMaintained": true
+ },
+ "globalIdFieldName": "",
+ "geometryType": "esriGeometryPoint",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID",
+   "sqlType": "sqlTypeOther",
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "Agency",
+   "type": "esriFieldTypeString",
+   "alias": "Agency",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "PlaceName",
+   "type": "esriFieldTypeString",
+   "alias": "Place Name",
+   "sqlType": "sqlTypeOther",
+   "length": 100,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "PlaceType",
+   "type": "esriFieldTypeString",
+   "alias": "Place Type",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "Address",
+   "type": "esriFieldTypeString",
+   "alias": "Address",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "City",
+   "type": "esriFieldTypeString",
+   "alias": "City",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "State",
+   "type": "esriFieldTypeString",
+   "alias": "State",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "ZipCode",
+   "type": "esriFieldTypeString",
+   "alias": "Zip Code",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "PhoneNumber",
+   "type": "esriFieldTypeString",
+   "alias": "PhoneNumber",
+   "sqlType": "sqlTypeOther",
+   "length": 50,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "Website",
+   "type": "esriFieldTypeString",
+   "alias": "Website",
+   "sqlType": "sqlTypeOther",
+   "length": 200,
+   "domain": null,
+   "defaultValue": null
+  },
+  {
+   "name": "BadgeWebsite",
+   "type": "esriFieldTypeString",
+   "alias": "BadgeWebsite",
+   "sqlType": "sqlTypeOther",
+   "length": 255,
+   "domain": null,
+   "defaultValue": null
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 1,
+    "Agency": "Fire District 12",
+    "PlaceName": "Latah Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "108 E Market St",
+    "City": "Latah",
+    "State": "WA",
+    "ZipCode": "99018",
+    "PhoneNumber": "(509) 283-4372",
+    "Website": "https://www.spokanecofd12.com/homepage.html",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/fire-district-12.png?1687389285"
+   },
+   "geometry": {
+    "x": -117.15518670983313,
+    "y": 47.27940632906894
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 2,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 310",
+    "PlaceType": "Fire Station",
+    "Address": "20606 W Williams Lake Rd",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station310",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.69643829084355,
+    "y": 47.33318098461682
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 3,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 39",
+    "PlaceType": "Fire Station",
+    "Address": "8811 W Cheney Plaza Rd",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station39",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.5343418833781,
+    "y": 47.34024554573735
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 4,
+    "Agency": "Fire District 12",
+    "PlaceName": " Station 2",
+    "PlaceType": "Fire Station",
+    "Address": "255 N Commercial St",
+    "City": "Waverly",
+    "State": "WA",
+    "ZipCode": "99039",
+    "PhoneNumber": "(509) 283-4372",
+    "Website": "https://www.spokanecofd12.com/homepage.html",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/fire-district-12.png?1687389285"
+   },
+   "geometry": {
+    "x": -117.2275245315255,
+    "y": 47.34316131718634
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 5,
+    "Agency": "Fire District 2",
+    "PlaceName": "Fire Station 21",
+    "PlaceType": "Fire Station",
+    "Address": "17815 E Truax Rd",
+    "City": "Fairfield",
+    "State": "WA",
+    "ZipCode": "99012",
+    "PhoneNumber": "(509) 714-6701",
+    "Website": "https://www.scfd2.org/fire-stations/station-21/",
+    "BadgeWebsite": "https://www.scfd2.org/wp-content/uploads/2023/09/scfd2_logo.png"
+   },
+   "geometry": {
+    "x": -117.1629134032937,
+    "y": 47.38123769458386
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 6,
+    "Agency": "Fire District 2",
+    "PlaceName": "Fire Station 22",
+    "PlaceType": "Fire Station",
+    "Address": "N 202 Railroad Ave",
+    "City": "Fairfield",
+    "State": "WA",
+    "ZipCode": "99012",
+    "PhoneNumber": "(509) 714-6701",
+    "Website": "https://www.scfd2.org/",
+    "BadgeWebsite": "https://www.scfd2.org/wp-content/uploads/2023/09/scfd2_logo.png"
+   },
+   "geometry": {
+    "x": -117.17176546545977,
+    "y": 47.386453128332356
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 7,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 312",
+    "PlaceType": "Fire Station",
+    "Address": "26801 W SR 904",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station312",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.7793290715412,
+    "y": 47.43588299901539
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 8,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 36",
+    "PlaceType": "Fire Station",
+    "Address": "235 W 2nd St",
+    "City": "Spangle",
+    "State": "WA",
+    "ZipCode": "99031",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station36",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.38209037987794,
+    "y": 47.428839187836175
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 9,
+    "Agency": "Fire District 2",
+    "PlaceName": "Fire Station 23",
+    "PlaceType": "Fire Station",
+    "Address": "13110 E Valley Chapel Rd",
+    "City": "Fairfield",
+    "State": "WA",
+    "ZipCode": "99012",
+    "PhoneNumber": "(509) 714-6701",
+    "Website": "https://www.scfd2.org/fire-stations/station-23/",
+    "BadgeWebsite": "https://www.scfd2.org/wp-content/uploads/2023/09/scfd2_logo.png"
+   },
+   "geometry": {
+    "x": -117.22762750922267,
+    "y": 47.44902029473601
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 10,
+    "Agency": "Fire District 11",
+    "PlaceName": "Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "116 W Emma St",
+    "City": "Rockford",
+    "State": "WA",
+    "ZipCode": "99030",
+    "PhoneNumber": "(509) 291-6666",
+    "Website": "https://www.scfd11.com/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-11-rockford_orig.png"
+   },
+   "geometry": {
+    "x": -117.13362561674637,
+    "y": 47.45256073679504
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 11,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 31",
+    "PlaceType": "Fire Station",
+    "Address": "10 S Presley Dr",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station31",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.59754411803715,
+    "y": 47.4780371609347
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 12,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 37",
+    "PlaceType": "Fire Station",
+    "Address": "19012 S Short Rd",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station37",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.47746226555864,
+    "y": 47.484367467075195
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 13,
+    "Agency": "Cheney Fire Dept",
+    "PlaceName": "Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "611 4th St",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 498-9291",
+    "Website": "https://www.cityofcheney.org/159/Fire-Department",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/cheney-fire-department_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.57622607222595,
+    "y": 47.489650572949586
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 14,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 32",
+    "PlaceType": "Fire Station",
+    "Address": "13906 S Medical Lake-Tyler Rd",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/staion32",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.72544890474157,
+    "y": 47.52654524683092
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 15,
+    "Agency": "Fire District 8",
+    "PlaceName": "Fire Station 82",
+    "PlaceType": "Fire Station",
+    "Address": "12100 E Palouse Hwy",
+    "City": "Valleyford",
+    "State": "WA",
+    "ZipCode": "99036",
+    "PhoneNumber": "(509) 926-6699",
+    "Website": "https://www.scfd8.org/about/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scfd-8.jpg?1687389484"
+   },
+   "geometry": {
+    "x": -117.24209015120861,
+    "y": 47.53414704236334
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 16,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 35",
+    "PlaceType": "Fire Station",
+    "Address": "1801 W Gibbs Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station35",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.43873337569597,
+    "y": 47.550779707682196
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 17,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 33",
+    "PlaceType": "Fire Station",
+    "Address": "12611 W Melville Rd",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station33",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.58950188795427,
+    "y": 47.56752188845568
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 18,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 311",
+    "PlaceType": "Fire Station",
+    "Address": "124 S Lefevre St",
+    "City": "Medical Lake",
+    "State": "WA",
+    "ZipCode": "99022",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station311",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.6829423081537,
+    "y": 47.57205492503457
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 19,
+    "Agency": "Fire District 3",
+    "PlaceName": "Fire Station 34",
+    "PlaceType": "Fire Station",
+    "Address": "7616 S Grove Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 235-6645",
+    "Website": "https://www.scfd3.org/station34",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-3_orig.png"
+   },
+   "geometry": {
+    "x": -117.49798575974008,
+    "y": 47.58411759001107
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 20,
+    "Agency": "Fire District 8",
+    "PlaceName": "Fire Station 81",
+    "PlaceType": "Fire Station",
+    "Address": "6117 S Palouse Hwy",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99223",
+    "PhoneNumber": "(509) 926-6699",
+    "Website": "https://www.scfd8.org/about/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scfd-8.jpg?1687389484"
+   },
+   "geometry": {
+    "x": -117.35147825613325,
+    "y": 47.597577655627276
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 23,
+    "Agency": "Fire District 8",
+    "PlaceName": "Fire Station 84",
+    "PlaceType": "Fire Station",
+    "Address": "4410 S Bates Rd",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 926-6699",
+    "Website": "https://www.scfd8.org/about/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scfd-8.jpg?1687389484"
+   },
+   "geometry": {
+    "x": -117.24965995072334,
+    "y": 47.61301712107573
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 24,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": "Fire Station 11",
+    "PlaceType": "Fire Station",
+    "Address": "3214 S Perry St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99203",
+    "PhoneNumber": "(509) 625-7111",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.39055896289624,
+    "y": 47.62512734282795
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 25,
+    "Agency": "Fire District 10",
+    "PlaceName": "Fire Station 10-2",
+    "PlaceType": "Fire Station",
+    "Address": "5408 W Lawton Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 244-2425",
+    "Website": "https://www.scfd10.org/stations/station-10-2/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-10_orig.png"
+   },
+   "geometry": {
+    "x": -117.48901344368174,
+    "y": 47.632286332315374
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 26,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 9",
+    "PlaceType": "Fire Station",
+    "Address": "12121 E 32nd Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.24167724752908,
+    "y": 47.62825730836129
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 27,
+    "Agency": "Fire District 8",
+    "PlaceName": "Fire Station 85",
+    "PlaceType": "Fire Station",
+    "Address": "3324 S Linke Rd",
+    "City": "Greenacres",
+    "State": "WA",
+    "ZipCode": "99016",
+    "PhoneNumber": "(509) 926-6699",
+    "Website": "https://www.scfd8.org/about/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scfd-8.jpg?1687389484"
+   },
+   "geometry": {
+    "x": -117.16029606477463,
+    "y": 47.62587609904249
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 28,
+    "Agency": "Fire District 10",
+    "PlaceName": "Fire Station 10-4",
+    "PlaceType": "Fire Station",
+    "Address": "1411 S Brooks Rd",
+    "City": "Medical Lake",
+    "State": "WA",
+    "ZipCode": "99022",
+    "PhoneNumber": "(509) 244-2425",
+    "Website": "https://www.scfd10.org/stations/station-10-4/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-10_orig.png"
+   },
+   "geometry": {
+    "x": -117.68976577602412,
+    "y": 47.64258133345308
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 29,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 6",
+    "PlaceType": "Fire Station",
+    "Address": "1615 S Spotted Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 625-7106",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.51778120339385,
+    "y": 47.63992472303547
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 30,
+    "Agency": "Airway Heights Fire Dept",
+    "PlaceName": "Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "1149 S Garfield Rd",
+    "City": "Airway Heights",
+    "State": "WA",
+    "ZipCode": "99001",
+    "PhoneNumber": "(509) 244-3322",
+    "Website": "http://www.cawh.org/departments/fire-department",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/airway-heights-fire-dept.png?1687389503"
+   },
+   "geometry": {
+    "x": -117.576273644905,
+    "y": 47.64543197345811
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 31,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 9",
+    "PlaceType": "Fire Station",
+    "Address": "1722 S Bernard St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99203",
+    "PhoneNumber": "(509) 625-7109",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.41731143534346,
+    "y": 47.639218081913555
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 32,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 14",
+    "PlaceType": "Fire Station",
+    "Address": "1807 S Ray St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99223",
+    "PhoneNumber": "(509) 625-7114",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.36276564013153,
+    "y": 47.638832454896445
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 33,
+    "Agency": "Fire District 10",
+    "PlaceName": "Fire Station 10-1",
+    "PlaceType": "Fire Station",
+    "Address": "929 S Garfield Rd",
+    "City": "Airway Heights",
+    "State": "WA",
+    "ZipCode": "99001",
+    "PhoneNumber": "(509) 244-2425",
+    "Website": "https://www.scfd10.org/stations/station-10-1/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-10_orig.png"
+   },
+   "geometry": {
+    "x": -117.57644364976431,
+    "y": 47.64697930648984
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 34,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 7",
+    "PlaceType": "Fire Station",
+    "Address": "1121 S Evergreen Rd",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99037",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.21769101393282,
+    "y": 47.6463125778251
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 35,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": "Fire Station 4",
+    "PlaceType": "Fire Station",
+    "Address": "1515 W 1st Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99201",
+    "PhoneNumber": "(509) 625-7104",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.43492741602297,
+    "y": 47.65603859348323
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 36,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 7",
+    "PlaceType": "Fire Station",
+    "Address": "1901 E 1st Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99202",
+    "PhoneNumber": "(509) 625-7107",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.38234400779491,
+    "y": 47.65651005905086
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 37,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "44 W Riverside Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99201",
+    "PhoneNumber": "(509) 625-7101",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.41274944656708,
+    "y": 47.65836018910913
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 38,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 6",
+    "PlaceType": "Fire Station",
+    "Address": "6306 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99212",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.31982743516663,
+    "y": 47.65664180881941
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 39,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "10319 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.26589242210007,
+    "y": 47.657440574200116
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 40,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 10",
+    "PlaceType": "Fire Station",
+    "Address": "17217 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99016",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.1726631185094,
+    "y": 47.657399662087194
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 41,
+    "Agency": "Fire District 10",
+    "PlaceName": "Fire Station 10-5",
+    "PlaceType": "Fire Station",
+    "Address": "9921 W Trails Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 244-2425",
+    "Website": "https://www.scfd10.org/stations/station-10-5/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-10_orig.png"
+   },
+   "geometry": {
+    "x": -117.5500480483125,
+    "y": 47.671768309441745
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 42,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 3",
+    "PlaceType": "Fire Station",
+    "Address": "1713 W Indiana Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-7103",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.43764299830676,
+    "y": 47.67474583060743
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 43,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 8",
+    "PlaceType": "Fire Station",
+    "Address": "1608 N Rebecca St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99217",
+    "PhoneNumber": "(509) 625-7108",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.35429990483051,
+    "y": 47.67285232363825
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 47,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 8",
+    "PlaceType": "Fire Station",
+    "Address": "2110 N Wilbur Rd",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.24715425729235,
+    "y": 47.67671396408492
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 48,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 2",
+    "PlaceType": "Fire Station",
+    "Address": "1001 E North Foothills Dr",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99207",
+    "PhoneNumber": "(509) 625-7102",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.3945898769554,
+    "y": 47.68381046417822
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 50,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 3",
+    "PlaceType": "Fire Station",
+    "Address": "21300 E Country Vista Dr",
+    "City": "Liberty Lake",
+    "State": "WA",
+    "ZipCode": "99019",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.119561395081,
+    "y": 47.66441239202208
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 51,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 5",
+    "PlaceType": "Fire Station",
+    "Address": "15510 E Marietta Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99216",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.1955761171456,
+    "y": 47.68106741878316
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 52,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 2",
+    "PlaceType": "Fire Station",
+    "Address": "9111 E Frederick Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.28156268004307,
+    "y": 47.68532583737542
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 53,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 13",
+    "PlaceType": "Fire Station",
+    "Address": "1118 W Wellesley Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-7113",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.42823721523106,
+    "y": 47.70104342241866
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 54,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 15",
+    "PlaceType": "Fire Station",
+    "Address": "2120 E Wellesley Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99207",
+    "PhoneNumber": "(509) 625-7115",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.37800906741154,
+    "y": 47.700272008826936
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 55,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 16",
+    "PlaceType": "Fire Station",
+    "Address": "5225 N Assembly St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-7116",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.47604597501957,
+    "y": 47.70694283191294
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 56,
+    "Agency": "Fire District 10",
+    "PlaceName": "Fire Station 10-3",
+    "PlaceType": "Fire Station",
+    "Address": "6316 N Dover Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 244-2425",
+    "Website": "https://www.scfd10.org/stations/station-10-3/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-10_orig.png"
+   },
+   "geometry": {
+    "x": -117.64662656127098,
+    "y": 47.715180011449924
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 57,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Station 4",
+    "PlaceType": "Fire Station",
+    "Address": "22406 E Wellesley Ave",
+    "City": "Otis Orchards",
+    "State": "WA",
+    "ZipCode": "99027",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.10511617113852,
+    "y": 47.69993498262342
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 58,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 98",
+    "PlaceType": "Fire Station",
+    "Address": "6606 N Regal St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99217",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.36756736657436,
+    "y": 47.71772908424695
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 59,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 94",
+    "PlaceType": "Fire Station",
+    "Address": "7017 N Jensen Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99217",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.29438110978097,
+    "y": 47.721374685224326
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 60,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 18",
+    "PlaceType": "Fire Station",
+    "Address": "120 E Lincoln Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99208",
+    "PhoneNumber": "(509) 625-7118",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.4079939567095,
+    "y": 47.729068863950566
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 61,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 17",
+    "PlaceType": "Fire Station",
+    "Address": "5121 W Lowell Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99208",
+    "PhoneNumber": "(509) 625-7117",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.48464288316634,
+    "y": 47.73684840968554
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 62,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 95",
+    "PlaceType": "Fire Station",
+    "Address": "3028 W Strong Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99208",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.45529216320821,
+    "y": 47.73729103244793
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 63,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 99",
+    "PlaceType": "Fire Station",
+    "Address": "9105 N Whitehouse St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99218",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.41695276720455,
+    "y": 47.73965624791924
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 64,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 96",
+    "PlaceType": "Fire Station",
+    "Address": "11019 N Forker Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99217",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.20819747469005,
+    "y": 47.758292108178345
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 65,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 91",
+    "PlaceType": "Fire Station",
+    "Address": "616 W Hastings Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99218",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.42058776756139,
+    "y": 47.76916172450176
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 66,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 93",
+    "PlaceType": "Fire Station",
+    "Address": "9915 W Charles Rd",
+    "City": "Nine Mile Falls",
+    "State": "WA",
+    "ZipCode": "99026",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.54943310980258,
+    "y": 47.77730933311047
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 67,
+    "Agency": "Fire District 5",
+    "PlaceName": "Fire Station 51",
+    "PlaceType": "Fire Station",
+    "Address": "17217 W Four Mound Rd",
+    "City": "Nine Mile Falls",
+    "State": "WA",
+    "ZipCode": "99026",
+    "PhoneNumber": "(509) 796-4793",
+    "Website": "http://www.scfd5.org/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-5_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.64823629429426,
+    "y": 47.78045912675277
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 68,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 92",
+    "PlaceType": "Fire Station",
+    "Address": "3801 E Farwell Rd",
+    "City": "Mead",
+    "State": "WA",
+    "ZipCode": "99021",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.35488431555382,
+    "y": 47.773237411978975
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 69,
+    "Agency": "Fire District 5",
+    "PlaceName": "Fire Station 52",
+    "PlaceType": "Fire Station",
+    "Address": "20302 W Charles Rd",
+    "City": "Nine Mile Falls",
+    "State": "WA",
+    "ZipCode": "99026",
+    "PhoneNumber": "(509) 796-4793",
+    "Website": "http://www.scfd5.org/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-5_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.69040682674039,
+    "y": 47.803032696394105
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 70,
+    "Agency": "Fire District 9",
+    "PlaceName": "Fire Station 97",
+    "PlaceType": "Fire Station",
+    "Address": "15222 N Charles Rd",
+    "City": "Nine Mile Falls",
+    "State": "WA",
+    "ZipCode": "99026",
+    "PhoneNumber": "(509) 466-4602",
+    "Website": "https://scfd9.org/locations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-9-clear_orig.png"
+   },
+   "geometry": {
+    "x": -117.62145057234608,
+    "y": 47.8038209803118
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 71,
+    "Agency": "Fire District 13",
+    "PlaceName": "Fire Station 2",
+    "PlaceType": "Fire Station",
+    "Address": "16108 N West Newman Lake Dr",
+    "City": "Newman Lake",
+    "State": "WA",
+    "ZipCode": "99025",
+    "PhoneNumber": "(509) 226-1482",
+    "Website": "https://www.newmanlakefire.net/",
+    "BadgeWebsite": "https://srec911.maps.arcgis.com/sharing/rest/content/items/e14c4bdea53a4cf09cd409aadbe04b05/data"
+   },
+   "geometry": {
+    "x": -117.10637739796361,
+    "y": 47.803644898892315
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 72,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 44",
+    "PlaceType": "Fire Station",
+    "Address": "17207 N Newport Hwy",
+    "City": "Mead",
+    "State": "WA",
+    "ZipCode": "99021",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.34824419949851,
+    "y": 47.81432354020756
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 73,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 47",
+    "PlaceType": "Fire Station",
+    "Address": "9815 E Greenbluff Rd",
+    "City": "Colbert",
+    "State": "WA",
+    "ZipCode": "99005",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.2743949482536,
+    "y": 47.82719324861926
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 74,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 49",
+    "PlaceType": "Fire Station",
+    "Address": "302 W Monroe Rd",
+    "City": "Colbert",
+    "State": "WA",
+    "ZipCode": "99005",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.41565126119738,
+    "y": 47.832200359403856
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 75,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 45",
+    "PlaceType": "Fire Station",
+    "Address": "W 6002 Wild Rose Rd",
+    "City": "Deer Park",
+    "State": "WA",
+    "ZipCode": "99006",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.47011920913964,
+    "y": 47.874165957145934
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 76,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 42",
+    "PlaceType": "Fire Station",
+    "Address": "3219 E Chattaroy Rd",
+    "City": "Chattaroy",
+    "State": "WA",
+    "ZipCode": "99003",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.36387965137729,
+    "y": 47.88973162823743
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 77,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 41",
+    "PlaceType": "Fire Station",
+    "Address": "315 E Crawford St",
+    "City": "Deer Park",
+    "State": "WA",
+    "ZipCode": "99006",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.47206431132294,
+    "y": 47.954691957593155
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 78,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 46",
+    "PlaceType": "Fire Station",
+    "Address": "3908 E Deer Park-Milan Rd",
+    "City": "Chattaroy",
+    "State": "WA",
+    "ZipCode": "99003",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.35692302723338,
+    "y": 47.970217354199384
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 79,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 43",
+    "PlaceType": "Fire Station",
+    "Address": "40116 N Elk-Camden Rd",
+    "City": "Elk",
+    "State": "WA",
+    "ZipCode": "99009",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.27676054281058,
+    "y": 48.019258710800024
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 80,
+    "Agency": "Cheney Police Dept",
+    "PlaceName": "Cheney Police Dept",
+    "PlaceType": "Police Station",
+    "Address": "215 G St",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 535-9233",
+    "Website": "https://www.cityofcheney.org/198/Police-Department",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/cheney-police-department_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.57801302052297,
+    "y": 47.487261638839904
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 81,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Medical Lake",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "124 S Lefevre St",
+    "City": "Medical Lake",
+    "State": "WA",
+    "ZipCode": "99022",
+    "PhoneNumber": "(509) 299-7525",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.68290568043106,
+    "y": 47.57216585219815
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 83,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Southeast",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "2727 S Mount Vernon St Suite 3C",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99223",
+    "PhoneNumber": "(509) 625-3326",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.36985838783121,
+    "y": 47.629291321510394
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 84,
+    "Agency": "Airway Heights Police Dept",
+    "PlaceName": "Airway Heights Police Dept",
+    "PlaceType": "Police Station",
+    "Address": "1307 S Ziegler St",
+    "City": "Airway Heights",
+    "State": "WA",
+    "ZipCode": "99001",
+    "PhoneNumber": "(509) 244-3707",
+    "Website": "http://www.cawh.org/departments/police-department",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/airway-heights-police-dept_orig.png"
+   },
+   "geometry": {
+    "x": -117.59557350166531,
+    "y": 47.643551512729644
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 85,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE University",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "10621 E 15th Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 477-2582",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.26162250190133,
+    "y": 47.64366126636612
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 86,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Southwest",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "1403 W 3rd Ave #B",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99201",
+    "PhoneNumber": "(509) 755-2677",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.43281940763322,
+    "y": 47.653280340501695
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 87,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Edgecliff",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "8417 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99212",
+    "PhoneNumber": "(509) 477-6345",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.29125308332104,
+    "y": 47.65732728451805
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 88,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. East Central",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "524 S Stone St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99202",
+    "PhoneNumber": "(509) 625-3330",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.37703375676652,
+    "y": 47.65097896844551
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 89,
+    "Agency": "Spokane Valley Police Dept",
+    "PlaceName": "Spokane Valley Police Precinct",
+    "PlaceType": "Police Station",
+    "Address": "12710 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99216",
+    "PhoneNumber": "(509) 477-3300",
+    "Website": "https://www.spokanevalley.org/police",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/svpd-logo.png?1687389478"
+   },
+   "geometry": {
+    "x": -117.23378671105591,
+    "y": 47.65647987724785
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 91,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "City of Spokane Police Dept",
+    "PlaceType": "Police Station",
+    "Address": "1100 W Mallon Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99260",
+    "PhoneNumber": "(509) 625-4100",
+    "Website": "https://my.spokanecity.org/police/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.42819190593062,
+    "y": 47.66542243377054
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 92,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "Spokane County Sheriff's Dept",
+    "PlaceType": "Police Station",
+    "Address": "1100 W Mallon Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99260",
+    "PhoneNumber": "(509) 477-2240",
+    "Website": "https://www.spokanecounty.org/4616/Sheriff",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.42819190593062,
+    "y": 47.66542243377054
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 93,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. West",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "1901 W Boone Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99201",
+    "PhoneNumber": "(509) 625-3340",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.44057932967881,
+    "y": 47.66788903788896
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 94,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. North Central",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "806 W Knox Ave",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-3348",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.42386948878001,
+    "y": 47.676945906379125
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 95,
+    "Agency": "Liberty Lake Police Dept",
+    "PlaceName": "Liberty Lake Police Department",
+    "PlaceType": "Police Station",
+    "Address": "23127 E Mission Ave",
+    "City": "Liberty Lake",
+    "State": "WA",
+    "ZipCode": "99019",
+    "PhoneNumber": "(509) 755-1140",
+    "Website": "https://www.libertylakewa.gov/178/Police",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/llpd-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.09370267955576,
+    "y": 47.67181559737147
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 97,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE West Valley",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "3102 N Argonne Rd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99212",
+    "PhoneNumber": "(509) 477-0629",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.28248297570802,
+    "y": 47.6852405435695
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 98,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Northwest",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "2215 W Wellesley Ave, Suite D",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-3336",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.44308384228177,
+    "y": 47.698980333695715
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 99,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Neva-Wood",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "4705 N Addison St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99207",
+    "PhoneNumber": "(509) 625-3353",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.40354025703066,
+    "y": 47.70087669341357
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 100,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Northeast",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "5124 N Market St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99217",
+    "PhoneNumber": "(509) 625-3343",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.36425526926732,
+    "y": 47.70479909820937
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 101,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE East",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "4904 N Harvard Rd",
+    "City": "Otis Orchards",
+    "State": "WA",
+    "ZipCode": "99027",
+    "PhoneNumber": "(509) 926-0655",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.11145722776153,
+    "y": 47.701324315506
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 102,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE North",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "33 E Lincoln Rd Ste 203",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99208",
+    "PhoneNumber": "(509) 477-6377",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.40955522163229,
+    "y": 47.729817809930296
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 103,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Deer Park",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "316 E Crawford St",
+    "City": "Deer Park",
+    "State": "WA",
+    "ZipCode": "99006",
+    "PhoneNumber": "(509) 276-7848",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.47181496123707,
+    "y": 47.95389360191915
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 104,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Elk",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "40116 N Elk-Camden Rd",
+    "City": "Elk",
+    "State": "WA",
+    "ZipCode": "99009",
+    "PhoneNumber": "(509) 292-0188",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.27676054281058,
+    "y": 48.019258710800024
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 105,
+    "Agency": "Spokane Int Airport Fire Dept",
+    "PlaceName": "Spokane Intl. Airport Fire Station",
+    "PlaceType": "Fire Station",
+    "Address": "9000 W Airport Dr",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": null,
+    "Website": "https://spokaneairports.net/contact",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-airport-patch.jpg?1687390267"
+   },
+   "geometry": {
+    "x": -117.54174690340515,
+    "y": 47.619944587242884
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 106,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 48",
+    "PlaceType": "Fire Station",
+    "Address": "17711 N Mt Spokane Park Dr",
+    "City": "Mead",
+    "State": "WA",
+    "ZipCode": "99021",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.21328534921065,
+    "y": 47.819152260899656
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 107,
+    "Agency": "Fire District 4",
+    "PlaceName": "Fire Station 40",
+    "PlaceType": "Fire Station",
+    "Address": "27515 N Elk Chattaroy Rd",
+    "City": "Chattaroy",
+    "State": "WA",
+    "ZipCode": "99003",
+    "PhoneNumber": "(509) 467-4500",
+    "Website": "https://scfd4.org/about-scfd4/spokane-fire-district-4-service-area/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-4_orig.jpg"
+   },
+   "geometry": {
+    "x": -117.27731564090159,
+    "y": 47.90839155838942
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 108,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Newtech",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "4141 N Regal St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99207",
+    "PhoneNumber": "(509) 354-7447",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.36869214337726,
+    "y": 47.69598405322307
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 109,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Logan",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "2927 N Perry St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99207",
+    "PhoneNumber": "(509) 625-3333",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.38939857373663,
+    "y": 47.68536945301295
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 110,
+    "Agency": "Fire District 13",
+    "PlaceName": "Fire Station 1",
+    "PlaceType": "Fire Station",
+    "Address": "9324 N Starr Rd",
+    "City": "Newman Lake",
+    "State": "WA",
+    "ZipCode": "99025",
+    "PhoneNumber": "(509) 226-1482",
+    "Website": "https://www.newmanlakefire.net/",
+    "BadgeWebsite": "https://srec911.maps.arcgis.com/sharing/rest/content/items/e14c4bdea53a4cf09cd409aadbe04b05/data"
+   },
+   "geometry": {
+    "x": -117.06853904269724,
+    "y": 47.74335099000502
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 111,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "SPD Downtown Precinct",
+    "PlaceType": "Police Station",
+    "Address": "111 N Wall St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99201",
+    "PhoneNumber": "(509) 622-5823",
+    "Website": "https://my.spokanecity.org/police/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.4224426863431,
+    "y": 47.658185813488025
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 112,
+    "Agency": "Spokane Fire Dept",
+    "PlaceName": " Fire Station 5",
+    "PlaceType": "Fire Station",
+    "Address": "115 W Eagle Ridge Blvd",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 625-7105",
+    "Website": "https://my.spokanecity.org/fire/operations/stations/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/spokane-fire-department-logo_orig.png"
+   },
+   "geometry": {
+    "x": -117.41249716122539,
+    "y": 47.59831302790462
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 116,
+    "Agency": "Eastern Washington University Police",
+    "PlaceName": "EWU Police Station",
+    "PlaceType": "Police Station",
+    "Address": "609 W 7th St",
+    "City": "Cheney",
+    "State": "WA",
+    "ZipCode": "99004",
+    "PhoneNumber": "(509) 359-7676",
+    "Website": "https://inside.ewu.edu/police/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/ewu-police-department_orig.png"
+   },
+   "geometry": {
+    "x": -117.58841784205016,
+    "y": 47.4860081796508
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 117,
+    "Agency": "Spokane Int Airport Police Dept",
+    "PlaceName": "Spokane Int Airport Police Department",
+    "PlaceType": "Police Station",
+    "Address": "9000 W Airport Dr",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99224",
+    "PhoneNumber": "(509) 455-6429",
+    "Website": "https://spokaneairports.net/contact",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-airport-patch.jpg?1687390267"
+   },
+   "geometry": {
+    "x": -117.53884735708642,
+    "y": 47.62412824865177
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 121,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE South",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "4827 S Palouse Hwy",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99223",
+    "PhoneNumber": "(509) 868-0200",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.3617111066844,
+    "y": 47.6092542307402
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 122,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Central Valley",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "14700 E Indiana Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99216",
+    "PhoneNumber": "(509) 477-6044",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.20863418372187,
+    "y": 47.67408956049229
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 123,
+    "Agency": "Spokane Police Dept",
+    "PlaceName": "C.O.P.S. Admin Office",
+    "PlaceType": "C.O.P.S. Office",
+    "Address": "1720 N Ash St",
+    "City": "Spokane",
+    "State": "WA",
+    "ZipCode": "99205",
+    "PhoneNumber": "(509) 625-3300",
+    "Website": "https://www.spokanecops.org/locations",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/spokane-police-department.png?1687390278"
+   },
+   "geometry": {
+    "x": -117.43675111038408,
+    "y": 47.6737933627158
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 124,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Liberty Lake",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "23127 E Mission Ave",
+    "City": "Liberty Lake",
+    "State": "WA",
+    "ZipCode": "99019",
+    "PhoneNumber": "(509) 953-9723",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/published/scso-patch.png?1687389491"
+   },
+   "geometry": {
+    "x": -117.09368656778847,
+    "y": 47.67189462356032
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 125,
+    "Agency": "Spokane County Sheriff's Office",
+    "PlaceName": "SCOPE Main",
+    "PlaceType": "S.C.O.P.E Office",
+    "Address": "12710 E Sprague Ave",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99216",
+    "PhoneNumber": "(509) 477-3376",
+    "Website": "https://www.spokanecounty.org/1378/SCOPE",
+    "BadgeWebsite": "https://www.spokanecounty.org/1378/SCOPE"
+   },
+   "geometry": {
+    "x": -117.23380038024727,
+    "y": 47.65628257265788
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 127,
+    "Agency": "Spokane Valley Fire Dept",
+    "PlaceName": "Fire Admin Office",
+    "PlaceType": "Fire Station",
+    "Address": "2120 N Wilbur Rd",
+    "City": "Spokane Valley",
+    "State": "WA",
+    "ZipCode": "99206",
+    "PhoneNumber": "(509) 928-1700",
+    "Website": "https://www.spokanevalleyfire.com/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/svfd-logo-png_orig.png"
+   },
+   "geometry": {
+    "x": -117.24582770999872,
+    "y": 47.676615000401746
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 128,
+    "Agency": "Fire District 11",
+    "PlaceName": "Fire Station 2",
+    "PlaceType": "Fire Station",
+    "Address": "16005 S Harvard Rd ",
+    "City": "Rockford",
+    "State": "WA",
+    "ZipCode": "99030",
+    "PhoneNumber": "(509) 291-6666",
+    "Website": "https://www.scfd11.com/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/scfd-11-rockford_orig.png"
+   },
+   "geometry": {
+    "x": -117.10955601163509,
+    "y": 47.50749836942974
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 129,
+    "Agency": "Kalispel Tribe Police Dept",
+    "PlaceName": "Kalispel Tribe Police Dept",
+    "PlaceType": "Police Station",
+    "Address": "202 S Industry Dr",
+    "City": "Airway Heights",
+    "State": "WA",
+    "ZipCode": "99001",
+    "PhoneNumber": "(509) 447-7287",
+    "Website": "https://kalispeltribe.com/our-government/public-safety/",
+    "BadgeWebsite": "https://www.spokane911.com/uploads/1/4/4/1/144147858/kalispel-tribe_orig.png"
+   },
+   "geometry": {
+    "x": -117.57027905412217,
+    "y": 47.65453809581596
+   }
+  }
+ ]
+}

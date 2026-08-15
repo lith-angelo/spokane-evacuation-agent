@@ -1,0 +1,92 @@
+# OpenShell network policy preset for the Always-On Wildfire Evacuation Agent.
+#
+# Apply with:
+#   nemoclaw my-assistant policy-add --from-file ./policies/spokane-evac.yaml --dry-run
+#   nemoclaw my-assistant policy-add --from-file ./policies/spokane-evac.yaml --yes
+#
+# Egress is deny-by-default. Everything the agent is allowed to reach is listed
+# here, GET/HEAD only. Any host or method not listed produces a real 403 from the
+# OpenShell L7 proxy, which the agent surfaces as a blocked action.
+#
+# Deliberately NOT listed: cameras.alertwildfire.org (see app/sources/firecam.py).
+# ALERTWildfire is the camera network fire agencies use for visual confirmation.
+# The host resolves and answers, so the blocked-action demo is a real capability
+# failing closed rather than a strawman: add the host here, re-apply, and the
+# tool works; remove it and the L7 proxy refuses the CONNECT. Verified both ways
+# in docs/DEMO.md.
+
+preset:
+  name: spokane-evac
+  description: "Read-only wildfire, evacuation-zone, traffic, geocoding, and routing APIs for the Spokane evacuation agent"
+
+network_policies:
+  spokane_evac:
+    name: spokane_evac
+    endpoints:
+      # NIFC WFIGS current incident locations and perimeters (ArcGIS Online).
+      # T4QMspbfLg3qTGWY is NIFC's AGOL org id; every route we need is under it.
+      - host: services3.arcgis.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/T4QMspbfLg3qTGWY/arcgis/rest/services/**" }
+          - allow: { method: HEAD, path: "/T4QMspbfLg3qTGWY/arcgis/rest/services/**" }
+          # SREC (Spokane Regional Emergency Communications) AGOL org — the
+          # Tier-1 local authority for evacuation levels. Resolves DESIGN 9.1:
+          # Genasys Protect serves an SPA at /api/** with no public JSON route,
+          # and Spokane County GIS carries no evacuation layer, so SREC is the
+          # only usable source for Level 1/2/3 zones.
+          - allow: { method: GET, path: "/9UdSzuxhN4jGcI9p/arcgis/rest/services/**" }
+          - allow: { method: HEAD, path: "/9UdSzuxhN4jGcI9p/arcgis/rest/services/**" }
+
+      # WSDOT ArcGIS — highway closures and traffic.
+      - host: data.wsdot.wa.gov
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/arcgis/rest/**" }
+          - allow: { method: HEAD, path: "/arcgis/rest/**" }
+
+      # Spokane County GIS — local evacuation zones, districts, facilities.
+      - host: gismo.spokanecounty.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/arcgis/rest/**" }
+          - allow: { method: HEAD, path: "/arcgis/rest/**" }
+
+      # Nominatim geocoding, so a landmark can be entered with no hardcoded coords.
+      - host: nominatim.openstreetmap.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/search" }
+          - allow: { method: HEAD, path: "/search" }
+          - allow: { method: GET, path: "/reverse" }
+          - allow: { method: HEAD, path: "/reverse" }
+          - allow: { method: GET, path: "/lookup" }
+          - allow: { method: HEAD, path: "/lookup" }
+          - allow: { method: GET, path: "/status.php" }
+
+      # OSRM demo router — candidate evacuation routes with alternatives.
+      - host: router.project-osrm.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/route/v1/**" }
+          - allow: { method: HEAD, path: "/route/v1/**" }
+          - allow: { method: GET, path: "/table/v1/**" }
+          - allow: { method: GET, path: "/nearest/v1/**" }
+          - allow: { method: GET, path: "/match/v1/**" }
+
+    # Verified present in this sandbox image. python3 uses a glob because the
+    # enforcer reports the resolved interpreter path (/usr/bin/python3.13).
+    binaries:
+      - { path: /usr/bin/curl }
+      - { path: /usr/bin/python3* }
+      - { path: /usr/local/bin/node }

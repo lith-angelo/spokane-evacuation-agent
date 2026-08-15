@@ -1,0 +1,89 @@
+{
+ "_meta": {
+  "origin": "authored",
+  "note": "SREC publishes nothing when no evacuation is active \u2014 this layer returned a literal {\"count\":0} on the day the fixture was built. Written in the live layer's exact response shape.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "geometryType": "esriGeometryPoint",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID"
+  },
+  {
+   "name": "POI_Type",
+   "type": "esriFieldTypeString",
+   "alias": "POI_Type"
+  },
+  {
+   "name": "POI_Name",
+   "type": "esriFieldTypeString",
+   "alias": "POI_Name"
+  },
+  {
+   "name": "Notes",
+   "type": "esriFieldTypeString",
+   "alias": "Notes"
+  },
+  {
+   "name": "FullAddress",
+   "type": "esriFieldTypeString",
+   "alias": "FullAddress"
+  },
+  {
+   "name": "PhoneNumber",
+   "type": "esriFieldTypeString",
+   "alias": "PhoneNumber"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 201,
+    "POI_Type": "Evacuation Shelter",
+    "POI_Name": "Spokane Falls Community College",
+    "Notes": "ADA accessible entrances and restrooms. On-site medical station with nurse. NO PETS \u2014 service animals only.",
+    "FullAddress": "3410 W Fort George Wright Dr, Spokane, WA 99224",
+    "PhoneNumber": "(509) 533-3500"
+   },
+   "geometry": {
+    "x": -117.4536,
+    "y": 47.6957
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 202,
+    "POI_Type": "Evacuation Shelter",
+    "POI_Name": "Spokane County Fair & Expo Center",
+    "Notes": "ADA accessible throughout. Pet and livestock intake in Barn C. Medical station staffed by Red Cross nurse.",
+    "FullAddress": "404 N Havana St, Spokane, WA 99202",
+    "PhoneNumber": "(509) 477-1766"
+   },
+   "geometry": {
+    "x": -117.2764,
+    "y": 47.6553
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 203,
+    "POI_Type": "Evacuation Shelter",
+    "POI_Name": "Nine Mile Falls School",
+    "Notes": "Pet crates available in gymnasium. Building is NOT ADA accessible \u2014 stairs at all entrances.",
+    "FullAddress": "10310 W Charles Rd, Nine Mile Falls, WA 99026",
+    "PhoneNumber": "(509) 340-4300"
+   },
+   "geometry": {
+    "x": -117.5536,
+    "y": 47.7757
+   }
+  }
+ ]
+}

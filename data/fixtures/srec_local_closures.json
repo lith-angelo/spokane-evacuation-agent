@@ -1,0 +1,85 @@
+{
+ "_meta": {
+  "origin": "authored",
+  "note": "SREC evacuation road closures. Coordinates verified against the captured route geometry.",
+  "built_at": "2026-08-15T18:00:24.421041+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "geometryType": "esriGeometryPolyline",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID"
+  },
+  {
+   "name": "RoadName",
+   "type": "esriFieldTypeString",
+   "alias": "RoadName"
+  },
+  {
+   "name": "ActiveClosure",
+   "type": "esriFieldTypeString",
+   "alias": "ActiveClosure"
+  },
+  {
+   "name": "Notes",
+   "type": "esriFieldTypeString",
+   "alias": "Notes"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 301,
+    "RoadName": "W Charles Rd / SR-291 north",
+    "ActiveClosure": "Yes",
+    "Notes": "Hard closure \u2014 fire activity across roadway. No through travel northbound."
+   },
+   "geometry": {
+    "paths": [
+     [
+      [
+       -117.5536,
+       47.7757
+      ],
+      [
+       -117.54,
+       47.76
+      ],
+      [
+       -117.52,
+       47.742
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 303,
+    "RoadName": "W Driscoll Blvd",
+    "ActiveClosure": "Yes",
+    "Notes": "Hard closure \u2014 emergency apparatus staging, roadway blocked between Alberta and Cochran."
+   },
+   "geometry": {
+    "paths": [
+     [
+      [
+       -117.458,
+       47.677
+      ],
+      [
+       -117.452,
+       47.6772
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

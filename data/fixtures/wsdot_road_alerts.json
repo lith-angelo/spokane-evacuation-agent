@@ -1,0 +1,110 @@
+{
+ "_meta": {
+  "origin": "captured",
+  "note": "Real WSDOT highway alerts around Spokane, saved verbatim.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "globalIdFieldName": "",
+ "geometryType": "esriGeometryPoint",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "alias": "OBJECTID",
+   "type": "esriFieldTypeOID"
+  },
+  {
+   "name": "TravelCenterPriorityId",
+   "alias": "TravelCenterPriorityId",
+   "type": "esriFieldTypeInteger"
+  },
+  {
+   "name": "EventCategoryDescription",
+   "alias": "EventCategoryDescription",
+   "type": "esriFieldTypeString",
+   "length": 400
+  },
+  {
+   "name": "EventCategoryTypeDescription",
+   "alias": "EventCategoryTypeDescription",
+   "type": "esriFieldTypeString",
+   "length": 20
+  },
+  {
+   "name": "EventPriorityID",
+   "alias": "EventPriorityID",
+   "type": "esriFieldTypeInteger"
+  },
+  {
+   "name": "Road",
+   "alias": "Road",
+   "type": "esriFieldTypeString",
+   "length": 50
+  },
+  {
+   "name": "RoadDirection",
+   "alias": "RoadDirection",
+   "type": "esriFieldTypeString",
+   "length": 20
+  },
+  {
+   "name": "HeadlineMessage",
+   "alias": "HeadlineMessage",
+   "type": "esriFieldTypeString",
+   "length": 550
+  },
+  {
+   "name": "LastModifiedDate",
+   "alias": "LastModifiedDate",
+   "type": "esriFieldTypeDate",
+   "length": 8
+  },
+  {
+   "name": "RoadClosedFlag",
+   "alias": "RoadClosedFlag",
+   "type": "esriFieldTypeSmallInteger"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 553621,
+    "TravelCenterPriorityId": 3,
+    "EventCategoryDescription": "Construction",
+    "EventCategoryTypeDescription": "Construction",
+    "EventPriorityID": 3,
+    "Road": "Greene",
+    "RoadDirection": "Northbound",
+    "HeadlineMessage": "Construction has closed E. South Riverton Avenue between Fiske and Ermina Avenue near Spokane Community College. The closure is part of work happening for the North Spokane Corridor River Crossing project.",
+    "LastModifiedDate": 1686860415350,
+    "RoadClosedFlag": 0
+   },
+   "geometry": {
+    "x": -117.36375437199996,
+    "y": 47.67702094500004
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 707910,
+    "TravelCenterPriorityId": 3,
+    "EventCategoryDescription": "Lane Closure",
+    "EventCategoryTypeDescription": "Construction",
+    "EventPriorityID": 3,
+    "Road": "Pines Rd",
+    "RoadDirection": "Both Directions",
+    "HeadlineMessage": "One lane closed in each direction for road work, on Pines Rd from Mirabeau Park to Pinecroft Way, beginning on August 5, 2026 until about 6:00 am on August 23, 2026. Expect some delays during this construction.",
+    "LastModifiedDate": 1786037200743,
+    "RoadClosedFlag": 0
+   },
+   "geometry": {
+    "x": -117.26396751299995,
+    "y": 47.67160049600005
+   }
+  }
+ ]
+}

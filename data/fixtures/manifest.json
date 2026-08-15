@@ -1,0 +1,91 @@
+{
+ "scenario": {
+  "name": "Rifle Club Fire \u2014 NW Spokane",
+  "label": "REPLAY",
+  "origin_hint": "Rifle Club Road, Spokane County",
+  "summary": "A wildfire northwest of Spokane pushes a Level 3 across the Rifle Club Road area. Roads, drive times, route geometry, highway alerts and the emergency facility list are real and captured live. The evacuation overlay \u2014 zones, activated shelters and local closures \u2014 is authored, because SREC publishes nothing when no evacuation is running.",
+  "built_for": "Spark Hack Seattle demonstration",
+  "phases": {
+   "before": "Initial conditions. Driscoll Blvd is closed; the Francis Ave corridor is open.",
+   "after": "After the simulated event. A spot fire has closed W Francis Ave across the selected route."
+  }
+ },
+ "entries": [
+  {
+   "host": "nominatim.openstreetmap.org",
+   "match": "nominatim.openstreetmap.org/search",
+   "requires": [
+    "Rifle"
+   ],
+   "file": "nominatim_rifle_club.json",
+   "latency_ms": 180
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Incident_Locations_Current",
+   "file": "wfigs_incidents.json",
+   "latency_ms": 640
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current",
+   "file": "wfigs_perimeters.json",
+   "latency_ms": 910
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "9UdSzuxhN4jGcI9p/arcgis/rest/services/Evacuation_Areas_Spokane_County_Public_View",
+   "file": "srec_evac_areas.json",
+   "latency_ms": 520
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "9UdSzuxhN4jGcI9p/arcgis/rest/services/Emergency_Response_Facility_Spokane_Co_Public_View",
+   "file": "srec_facilities.json",
+   "latency_ms": 700
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "9UdSzuxhN4jGcI9p/arcgis/rest/services/Evacuation_Support_Data_Spokane_County_Public_View/FeatureServer/2",
+   "file": "srec_evac_poi.json",
+   "latency_ms": 480
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "9UdSzuxhN4jGcI9p/arcgis/rest/services/Evacuation_Support_Data_Spokane_County_Public_View/FeatureServer/3",
+   "file": "srec_local_closures.json",
+   "latency_ms": 455
+  },
+  {
+   "host": "data.wsdot.wa.gov",
+   "match": "TravelInfoRoadAlerts",
+   "file": "wsdot_road_alerts.json",
+   "latency_ms": 830
+  },
+  {
+   "host": "router.project-osrm.org",
+   "match": "polyline(wkgbH~~blUbvKomi%40)",
+   "file": "osrm_to_fairgrounds.json",
+   "latency_ms": 1240
+  },
+  {
+   "host": "router.project-osrm.org",
+   "match": "polyline(wkgbH~~blUryC_zF)",
+   "file": "osrm_to_sfcc.json",
+   "latency_ms": 1120
+  },
+  {
+   "host": "router.project-osrm.org",
+   "match": "polyline(wkgbH~~blUkxI~tJ)",
+   "file": "osrm_to_nine_mile.json",
+   "latency_ms": 1080
+  },
+  {
+   "host": "services3.arcgis.com",
+   "match": "9UdSzuxhN4jGcI9p/arcgis/rest/services/Evacuation_Support_Data_Spokane_County_Public_View/FeatureServer/3",
+   "file": "srec_local_closures_after.json",
+   "latency_ms": 455,
+   "phase": "after"
+  }
+ ]
+}

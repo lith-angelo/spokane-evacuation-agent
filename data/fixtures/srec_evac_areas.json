@@ -1,0 +1,180 @@
+{
+ "_meta": {
+  "origin": "authored",
+  "note": "SREC publishes nothing when no evacuation is active \u2014 this layer returned a literal {\"count\":0} on the day the fixture was built. Written in the live layer's exact response shape.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "objectIdFieldName": "OBJECTID",
+ "globalIdFieldName": "GlobalID",
+ "geometryType": "esriGeometryPolygon",
+ "spatialReference": {
+  "wkid": 4326,
+  "latestWkid": 4326
+ },
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID",
+   "alias": "OBJECTID"
+  },
+  {
+   "name": "IncidentType",
+   "type": "esriFieldTypeString",
+   "alias": "IncidentType"
+  },
+  {
+   "name": "IncidentName",
+   "type": "esriFieldTypeString",
+   "alias": "IncidentName"
+  },
+  {
+   "name": "FireDistrict",
+   "type": "esriFieldTypeString",
+   "alias": "FireDistrict"
+  },
+  {
+   "name": "EvacStatus",
+   "type": "esriFieldTypeString",
+   "alias": "EvacStatus"
+  },
+  {
+   "name": "EvacLevel",
+   "type": "esriFieldTypeString",
+   "alias": "EvacLevel"
+  },
+  {
+   "name": "BoundaryDesc",
+   "type": "esriFieldTypeString",
+   "alias": "BoundaryDesc"
+  },
+  {
+   "name": "PublicAppMsg",
+   "type": "esriFieldTypeString",
+   "alias": "PublicAppMsg"
+  }
+ ],
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 101,
+    "IncidentType": "Wildfire",
+    "IncidentName": "Rifle Club Fire",
+    "FireDistrict": "Spokane County Fire District 9",
+    "EvacStatus": "GO",
+    "EvacLevel": "Level 3",
+    "BoundaryDesc": "Rifle Club Rd / Seven Mile / NW Spokane",
+    "PublicAppMsg": "LEAVE NOW. Do not delay to gather belongings. Travel south and east on Nine Mile Rd toward Francis Ave."
+   },
+   "geometry": {
+    "rings": [
+     [
+      [
+       -117.56,
+       47.762
+      ],
+      [
+       -117.44,
+       47.762
+      ],
+      [
+       -117.43,
+       47.7
+      ],
+      [
+       -117.52,
+       47.688
+      ],
+      [
+       -117.575,
+       47.712
+      ],
+      [
+       -117.56,
+       47.762
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 102,
+    "IncidentType": "Wildfire",
+    "IncidentName": "Rifle Club Fire",
+    "FireDistrict": "Spokane County Fire District 9",
+    "EvacStatus": "SET",
+    "EvacLevel": "Level 2",
+    "BoundaryDesc": "Indian Trail / NW Boulevard corridor",
+    "PublicAppMsg": "Be ready to leave at a moment's notice. People with pets, livestock or mobility needs should leave now."
+   },
+   "geometry": {
+    "rings": [
+     [
+      [
+       -117.43,
+       47.7
+      ],
+      [
+       -117.52,
+       47.688
+      ],
+      [
+       -117.51,
+       47.64
+      ],
+      [
+       -117.412,
+       47.632
+      ],
+      [
+       -117.398,
+       47.678
+      ],
+      [
+       -117.43,
+       47.7
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 103,
+    "IncidentType": "Wildfire",
+    "IncidentName": "Rifle Club Fire",
+    "FireDistrict": "Spokane County Fire District 9",
+    "EvacStatus": "READY",
+    "EvacLevel": "Level 1",
+    "BoundaryDesc": "North Spokane / Audubon Park",
+    "PublicAppMsg": "Be aware of danger in your area. Monitor official channels."
+   },
+   "geometry": {
+    "rings": [
+     [
+      [
+       -117.412,
+       47.632
+      ],
+      [
+       -117.51,
+       47.64
+      ],
+      [
+       -117.5,
+       47.59
+      ],
+      [
+       -117.4,
+       47.582
+      ],
+      [
+       -117.412,
+       47.632
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

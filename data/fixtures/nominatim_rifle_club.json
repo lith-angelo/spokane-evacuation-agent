@@ -1,0 +1,40 @@
+{
+ "_meta": {
+  "origin": "captured",
+  "note": "Live Nominatim result for the demo origin.",
+  "built_at": "2026-08-15T17:48:33.732834+00:00"
+ },
+ "_list": [
+  {
+   "place_id": 327063737,
+   "licence": "Data \u00a9 OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 6152144,
+   "lat": "47.7204357",
+   "lon": "-117.4937647",
+   "category": "highway",
+   "type": "residential",
+   "place_rank": 26,
+   "importance": 0.05339959182116423,
+   "addresstype": "road",
+   "name": "West Rifle Club Road",
+   "display_name": "West Rifle Club Road, Spokane, Spokane County, Washington, 99208, United States",
+   "address": {
+    "road": "West Rifle Club Road",
+    "city": "Spokane",
+    "county": "Spokane County",
+    "state": "Washington",
+    "ISO3166-2-lvl4": "US-WA",
+    "postcode": "99208",
+    "country": "United States",
+    "country_code": "us"
+   },
+   "boundingbox": [
+    "47.7180414",
+    "47.7219091",
+    "-117.4970513",
+    "-117.4899121"
+   ]
+  }
+ ]
+}

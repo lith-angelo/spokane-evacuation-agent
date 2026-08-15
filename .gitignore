@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.env
+*.sqlite3
+
+# Session state is regenerated on every run; the replay fixtures under
+# data/fixtures/ are the demo and must stay tracked.
+data/sessions.sqlite3
+data/*.sqlite3
+
+web/node_modules/
+web/dist/
