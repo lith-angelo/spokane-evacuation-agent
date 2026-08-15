@@ -1,48 +1,105 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 
-const LEVEL_COLOR = { 3: '#ff4d4f', 2: '#ff9f2e', 1: '#ffd83d', 0: '#35d07f', '-1': '#8b97ad' }
+/**
+ * The map.
+ *
+ * Colour comes from the same hazard scale as the rest of the app, read off the
+ * CSS custom properties so there is exactly one definition of what Level 3 looks
+ * like. Two pieces of Apple's motion guidance apply here: a large repositioning
+ * surface should ease rather than jump (`flyTo`, not `setView`), and the view
+ * must never be yanked out from under someone who has panned somewhere
+ * deliberately.
+ */
 
-// ArcGIS hands back {rings:[...]}; GeoJSON uses coordinates. Normalise both to
-// the [[lat, lon], ...] rings Leaflet wants.
-function toLatLngRings(geometry) {
-  if (!geometry) return []
-  if (geometry.rings) {
-    return geometry.rings.map((ring) => ring.map(([lon, lat]) => [lat, lon]))
+function token(name, fallback) {
+  if (typeof window === 'undefined') return fallback
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return v || fallback
+}
+
+function palette() {
+  return {
+    l3: token('--l3', '#ff453a'),
+    l2: token('--l2', '#ff9f0a'),
+    l1: token('--l1', '#ffd60a'),
+    clear: token('--clear', '#30d158'),
+    unknown: token('--unknown', '#8e99ad'),
+    fire: token('--fire', '#ff6b35'),
+    route: token('--route', '#0a84ff'),
+    routeDead: token('--route-dead', '#55607a'),
+    sim: token('--sim', '#ff375f'),
   }
+}
+
+function levelColor(level, p) {
+  return { 3: p.l3, 2: p.l2, 1: p.l1, 0: p.clear }[level] || p.unknown
+}
+
+// ArcGIS returns {rings}/{paths}; GeoJSON returns coordinates. Leaflet wants
+// [lat, lon]. Normalise all three here so no caller has to care.
+function toRings(geometry) {
+  if (!geometry) return []
+  if (geometry.rings) return geometry.rings.map((r) => r.map(([x, y]) => [y, x]))
   const { type, coordinates } = geometry
-  if (type === 'Polygon') return coordinates.map((r) => r.map(([lon, lat]) => [lat, lon]))
-  if (type === 'MultiPolygon') return coordinates.flat().map((r) => r.map(([lon, lat]) => [lat, lon]))
+  if (type === 'Polygon') return coordinates.map((r) => r.map(([x, y]) => [y, x]))
+  if (type === 'MultiPolygon')
+    return coordinates.flat().map((r) => r.map(([x, y]) => [y, x]))
   return []
 }
 
-function toLatLngLines(geometry) {
+function toLines(geometry) {
   if (!geometry) return []
-  if (geometry.paths) return geometry.paths.map((p) => p.map(([lon, lat]) => [lat, lon]))
+  if (geometry.paths) return geometry.paths.map((p) => p.map(([x, y]) => [y, x]))
   const { type, coordinates } = geometry
-  if (type === 'LineString') return [coordinates.map(([lon, lat]) => [lat, lon])]
-  if (type === 'MultiLineString') return coordinates.map((p) => p.map(([lon, lat]) => [lat, lon]))
+  if (type === 'LineString') return [coordinates.map(([x, y]) => [y, x])]
+  if (type === 'MultiLineString') return coordinates.map((p) => p.map(([x, y]) => [y, x]))
   return []
 }
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 export default function MapPanel({ state }) {
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
   const fittedRef = useRef(false)
+  const userMovedRef = useRef(false)
 
   useEffect(() => {
     if (mapRef.current) return
-    const map = L.map(elRef.current, { zoomControl: true, attributionControl: true })
+
+    const map = L.map(elRef.current, {
+      zoomControl: true,
+      attributionControl: true,
+      // Momentum on pan, so the map behaves like a physical surface.
+      inertia: true,
+      inertiaDeceleration: 2400,
+      zoomSnap: 0.25,
+    })
     map.setView([47.69, -117.44], 11)
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
-      attribution: 'Map tiles © OpenStreetMap contributors — loaded by the browser, not by the agent',
+      attribution:
+        'Map tiles © OpenStreetMap contributors — loaded by the browser, not by the agent',
     }).addTo(map)
+
+    // Once someone has driven the map themselves, stop repositioning it for
+    // them. Taking the view back would override a deliberate choice.
+    map.on('dragstart zoomstart', () => {
+      userMovedRef.current = true
+    })
 
     mapRef.current = map
     layerRef.current = L.layerGroup().addTo(map)
+
+    return () => {
+      map.remove()
+      mapRef.current = null
+    }
   }, [])
 
   useEffect(() => {
@@ -50,69 +107,83 @@ export default function MapPanel({ state }) {
     const group = layerRef.current
     if (!map || !group || !state) return
 
+    const p = palette()
     group.clearLayers()
     const bounds = []
 
-    // Evacuation zones, drawn under everything else.
+    // Zones sit underneath everything: they are context, not the subject.
     for (const z of state.zones || []) {
-      const rings = toLatLngRings(z.record?.geometry)
+      const rings = toRings(z.record?.geometry)
       if (!rings.length) continue
-      const color = LEVEL_COLOR[String(z.level)] || '#8b97ad'
+      const color = levelColor(z.level, p)
       const poly = L.polygon(rings, {
         color,
-        weight: 1.5,
+        weight: 1.25,
+        opacity: 0.85,
         fillColor: color,
-        fillOpacity: z.level === 3 ? 0.24 : z.level === 2 ? 0.16 : 0.1,
+        fillOpacity: z.level === 3 ? 0.22 : z.level === 2 ? 0.14 : 0.08,
       })
       poly.bindPopup(
-        `<b>${z.level_label || 'Zone'}</b><br>${z.boundary_desc || ''}<br>` +
-          `<small>${z.public_message || ''}</small>`
+        `<b>${z.level_label || 'Evacuation zone'}</b><br>${z.boundary_desc || ''}` +
+          (z.public_message ? `<br><br>${z.public_message}` : '')
       )
       poly.addTo(group)
       bounds.push(poly.getBounds())
     }
 
-    // Fire perimeters.
+    // Fire perimeters. A dashed edge means the polygon is past its freshness
+    // window — the same signal the sources panel gives, in the same place the
+    // eye already is.
     for (const inc of state.incidents || []) {
-      const rings = toLatLngRings(inc.perimeter)
+      const rings = toRings(inc.perimeter)
       if (!rings.length) continue
       const poly = L.polygon(rings, {
-        color: '#ff6b3d',
+        color: p.fire,
         weight: 2,
-        fillColor: '#ff6b3d',
-        fillOpacity: 0.34,
-        dashArray: inc.record?.stale ? '5,4' : undefined,
+        fillColor: p.fire,
+        fillOpacity: 0.3,
+        dashArray: inc.record?.stale ? '6,4' : undefined,
       })
       poly.bindPopup(
-        `<b>${inc.name}</b><br>${inc.acres ? Math.round(inc.acres).toLocaleString() + ' acres' : 'size not reported'}` +
-          `${inc.containment_pct != null ? ` · ${inc.containment_pct}% contained` : ''}` +
-          `<br><small>${inc.record?.stale ? '⚠ stale — ' : ''}${inc.record?.source_id}</small>`
+        `<b>${inc.name}</b><br>` +
+          (inc.acres ? `${Math.round(inc.acres).toLocaleString()} acres` : 'size not reported') +
+          (inc.containment_pct != null ? ` · ${inc.containment_pct}% contained` : '') +
+          `<br><span style="opacity:.7">${inc.record?.stale ? '⚠ stale — ' : ''}${
+            inc.record?.source_id || ''
+          }</span>`
       )
       poly.addTo(group)
       bounds.push(poly.getBounds())
     }
 
-    // Closures.
     for (const c of state.closures || []) {
-      for (const line of toLatLngLines(c.geometry)) {
+      for (const line of toLines(c.geometry)) {
         if (line.length < 2) continue
-        const pl = L.polyline(line, {
-          color: c.simulated ? '#ff2ea6' : '#ff4d4f',
+        L.polyline(line, {
+          color: c.simulated ? p.sim : p.l3,
           weight: 5,
           opacity: 0.95,
-          dashArray: '9,6',
+          dashArray: '10,6',
+          lineCap: 'round',
         })
-        pl.bindPopup(
-          `<b>${c.simulated ? 'SIMULATED — ' : ''}${c.road || 'Closure'}</b><br>${c.description}`
-        )
-        pl.addTo(group)
+          .bindPopup(
+            `<b>${c.simulated ? 'SIMULATED — ' : ''}${c.road || 'Closure'}</b><br>${
+              c.description
+            }`
+          )
+          .addTo(group)
       }
     }
 
-    // Rejected routes first, so the approved one draws on top.
+    // Rejected first so the approved route draws above it.
     for (const r of state.rejected_routes || []) {
-      for (const line of toLatLngLines(r.geometry)) {
-        L.polyline(line, { color: '#55607a', weight: 3, opacity: 0.55, dashArray: '4,6' })
+      for (const line of toLines(r.geometry)) {
+        L.polyline(line, {
+          color: p.routeDead,
+          weight: 3,
+          opacity: 0.5,
+          dashArray: '4,7',
+        })
           .bindPopup(`<b>${r.route_id} — REJECTED</b><br>${r.rejection_reason || ''}`)
           .addTo(group)
       }
@@ -121,61 +192,92 @@ export default function MapPanel({ state }) {
     const current = state.current_route
     for (const r of state.approved_routes || []) {
       const isCurrent = current && r.route_id === current.route_id
-      for (const line of toLatLngLines(r.geometry)) {
+      for (const line of toLines(r.geometry)) {
+        // A wide, low-opacity casing under the selected route reads as depth
+        // and keeps it legible over both dark parkland and pale streets.
+        if (isCurrent) {
+          L.polyline(line, {
+            color: p.route,
+            weight: 12,
+            opacity: 0.22,
+            lineCap: 'round',
+          }).addTo(group)
+        }
         const pl = L.polyline(line, {
-          color: isCurrent ? '#3da9fc' : '#2c6c9e',
-          weight: isCurrent ? 6 : 3,
-          opacity: isCurrent ? 0.95 : 0.5,
+          color: isCurrent ? p.route : '#2c6c9e',
+          weight: isCurrent ? 5 : 3,
+          opacity: isCurrent ? 1 : 0.5,
+          lineCap: 'round',
         })
         pl.bindPopup(
           `<b>${r.route_id}${isCurrent ? ' — SELECTED' : ' — approved alternative'}</b><br>` +
             `${r.distance_km} km · ${Math.round(r.eta_min)} min` +
-            `${r.hazard_margin_km != null ? `<br>${r.hazard_margin_km.toFixed(1)} km from nearest perimeter` : ''}`
+            (r.hazard_margin_km != null
+              ? `<br>${r.hazard_margin_km.toFixed(1)} km from nearest perimeter`
+              : '')
         )
         pl.addTo(group)
         if (isCurrent) bounds.push(pl.getBounds())
       }
     }
 
-    // Shelters.
     for (const s of state.shelters || []) {
       const chosen = state.destination && s.shelter_id === state.destination.shelter_id
       const rejected = (state.rejected_shelters || []).find(
         (x) => x.shelter.shelter_id === s.shelter_id
       )
-      const color = chosen ? '#35d07f' : rejected ? '#ff4d4f' : '#8b97ad'
+      const color = chosen ? p.clear : rejected ? p.l3 : p.unknown
       const m = L.circleMarker([s.lat, s.lon], {
         radius: chosen ? 9 : 6,
         color,
         weight: 2,
         fillColor: color,
-        fillOpacity: chosen ? 0.85 : 0.35,
+        fillOpacity: chosen ? 0.9 : 0.3,
       })
       m.bindPopup(
-        `<b>${s.name}</b><br>${s.address || ''}<br>` +
-          `<small>${chosen ? '✓ meets every requirement' : rejected ? '✗ missing: ' + rejected.unmet.join(', ') : 'candidate'}</small>`
+        `<b>${s.name}</b><br>${s.address || ''}<br><span style="opacity:.75">` +
+          (chosen
+            ? '✓ meets every requirement'
+            : rejected
+              ? '✗ missing: ' + rejected.unmet.join(', ')
+              : 'candidate') +
+          '</span>'
       )
       m.addTo(group)
-      if (chosen) bounds.push(L.latLngBounds([[s.lat, s.lon], [s.lat, s.lon]]))
+      if (chosen) bounds.push(L.latLngBounds([s.lat, s.lon], [s.lat, s.lon]))
     }
 
-    // The resident.
     if (state.place) {
       const home = L.circleMarker([state.place.lat, state.place.lon], {
-        radius: 8,
+        radius: 7,
         color: '#ffffff',
         weight: 3,
-        fillColor: '#3da9fc',
+        fillColor: p.route,
         fillOpacity: 1,
       })
       home.bindPopup(`<b>You are here</b><br>${state.place.label || ''}`)
       home.addTo(group)
-      bounds.push(L.latLngBounds([[state.place.lat, state.place.lon], [state.place.lat, state.place.lon]]))
+      bounds.push(
+        L.latLngBounds([state.place.lat, state.place.lon], [state.place.lat, state.place.lon])
+      )
     }
 
-    if (bounds.length && !fittedRef.current) {
+    if (bounds.length && !fittedRef.current && !userMovedRef.current) {
       const all = bounds.reduce((acc, b) => (acc ? acc.extend(b) : b), null)
-      if (all) map.fitBounds(all, { padding: [50, 50] })
+      if (all) {
+        // Ease into position instead of teleporting: a large surface that jumps
+        // costs the viewer their bearings.
+        const opts = {
+          // Leave room for the drawer along the bottom edge.
+          paddingTopLeft: [56, 56],
+          paddingBottomRight: [56, 260],
+        }
+        if (prefersReducedMotion()) {
+          map.fitBounds(all, opts)
+        } else {
+          map.flyToBounds(all, { ...opts, duration: 0.8, easeLinearity: 0.25 })
+        }
+      }
       fittedRef.current = true
     }
   }, [state])
@@ -183,14 +285,24 @@ export default function MapPanel({ state }) {
   return (
     <>
       <div className="map" ref={elRef} />
-      <div className="legend">
-        <div className="row"><span className="sw box" style={{ background: '#ff4d4f' }} /> Level 3 zone</div>
-        <div className="row"><span className="sw box" style={{ background: '#ff9f2e' }} /> Level 2 zone</div>
-        <div className="row"><span className="sw box" style={{ background: '#ffd83d' }} /> Level 1 zone</div>
-        <div className="row"><span className="sw box" style={{ background: '#ff6b3d' }} /> Fire perimeter</div>
-        <div className="row"><span className="sw" style={{ background: '#3da9fc', height: 4 }} /> Selected route</div>
-        <div className="row"><span className="sw" style={{ background: '#55607a' }} /> Rejected route</div>
-        <div className="row"><span className="sw" style={{ background: '#ff2ea6' }} /> Simulated closure</div>
+      <div className="map-card legend" aria-label="Map legend">
+        {[
+          ['box', 'var(--l3)', 'Level 3 zone'],
+          ['box', 'var(--l2)', 'Level 2 zone'],
+          ['box', 'var(--l1)', 'Level 1 zone'],
+          ['box', 'var(--fire)', 'Fire perimeter'],
+          ['line', 'var(--route)', 'Selected route'],
+          ['line', 'var(--route-dead)', 'Rejected route'],
+          ['line', 'var(--sim)', 'Simulated closure'],
+        ].map(([shape, color, label]) => (
+          <div className="legend-row" key={label}>
+            <span
+              className={`sw ${shape === 'box' ? 'box' : ''}`}
+              style={{ background: color }}
+            />
+            {label}
+          </div>
+        ))}
       </div>
     </>
   )
