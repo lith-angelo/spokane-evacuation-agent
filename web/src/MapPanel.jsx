@@ -20,16 +20,33 @@ function token(name, fallback) {
 
 function palette() {
   return {
-    l3: token('--l3', '#ff453a'),
-    l2: token('--l2', '#ff9f0a'),
-    l1: token('--l1', '#ffd60a'),
-    clear: token('--clear', '#30d158'),
-    unknown: token('--unknown', '#8e99ad'),
-    fire: token('--fire', '#ff6b35'),
-    route: token('--route', '#0a84ff'),
-    routeDead: token('--route-dead', '#55607a'),
-    sim: token('--sim', '#ff375f'),
+    l3: token('--map-l3', '#ff453a'),
+    l2: token('--map-l2', '#ff9f0a'),
+    l1: token('--map-l1', '#ffd60a'),
+    clear: token('--map-clear', '#30d158'),
+    unknown: token('--unknown', '#8e8e93'),
+    fire: token('--map-fire', '#ff6b35'),
+    route: token('--map-route', '#0a84ff'),
+    routeDead: token('--map-route-dead', '#55607a'),
+    sim: token('--map-sim', '#ff375f'),
+    homeRing: token('--map-home-ring', '#ffffff'),
   }
+}
+
+// Clean, low-chroma basemaps. Raw OSM tiles carry so much of their own colour
+// that a fire perimeter has to shout to be seen; these leave the hazard scale
+// as the only saturated thing on screen, which is the point.
+const BASEMAPS = {
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '© OpenStreetMap contributors © CARTO — tiles loaded by the browser, not by the agent',
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '© OpenStreetMap contributors © CARTO — tiles loaded by the browser, not by the agent',
+  },
 }
 
 function levelColor(level, p) {
@@ -61,12 +78,13 @@ const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-export default function MapPanel({ state }) {
+export default function MapPanel({ state, theme = 'light' }) {
   const elRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
   const fittedRef = useRef(false)
   const userMovedRef = useRef(false)
+  const tileRef = useRef(null)
 
   useEffect(() => {
     if (mapRef.current) return
@@ -81,11 +99,6 @@ export default function MapPanel({ state }) {
     })
     map.setView([47.69, -117.44], 11)
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution:
-        'Map tiles © OpenStreetMap contributors — loaded by the browser, not by the agent',
-    }).addTo(map)
 
     // Once someone has driven the map themselves, stop repositioning it for
     // them. Taking the view back would override a deliberate choice.
@@ -101,6 +114,29 @@ export default function MapPanel({ state }) {
       mapRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const base = BASEMAPS[theme] || BASEMAPS.light
+
+    const layer = L.tileLayer(base.url, {
+      maxZoom: 19,
+      attribution: base.attribution,
+      // Keep the outgoing tiles until the new ones have painted, so the flip
+      // does not flash the empty background.
+      className: 'basemap',
+    })
+    layer.addTo(map)
+
+    const previous = tileRef.current
+    tileRef.current = layer
+    if (previous) {
+      layer.once('load', () => map.removeLayer(previous))
+      // If the network stalls, do not leave two basemaps stacked forever.
+      setTimeout(() => map.hasLayer(previous) && map.removeLayer(previous), 2000)
+    }
+  }, [theme])
 
   useEffect(() => {
     const map = mapRef.current
@@ -250,7 +286,7 @@ export default function MapPanel({ state }) {
     if (state.place) {
       const home = L.circleMarker([state.place.lat, state.place.lon], {
         radius: 7,
-        color: '#ffffff',
+        color: p.homeRing,
         weight: 3,
         fillColor: p.route,
         fillOpacity: 1,
@@ -280,7 +316,7 @@ export default function MapPanel({ state }) {
       }
       fittedRef.current = true
     }
-  }, [state])
+  }, [state, theme])
 
   return (
     <>

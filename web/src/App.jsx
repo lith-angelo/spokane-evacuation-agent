@@ -4,6 +4,7 @@ import MapPanel from './MapPanel.jsx'
 import Panel from './Panel.jsx'
 import ActivityDrawer from './ActivityDrawer.jsx'
 import { SPRING } from './motion.js'
+import { useTheme } from './theme.js'
 
 const PRESET = {
   query: 'Rifle Club Road, Spokane County',
@@ -34,6 +35,7 @@ function levelClass(level) {
 }
 
 export default function App() {
+  const { mode, resolved, cycle } = useTheme()
   const [health, setHealth] = useState(null)
   const [query, setQuery] = useState(PRESET.query)
   const [needs, setNeeds] = useState(PRESET.needs)
@@ -161,6 +163,15 @@ export default function App() {
 
         <div className="spacer" />
 
+        <button
+          className="btn sm icon"
+          onClick={cycle}
+          title={`Appearance: ${mode}. Click to change.`}
+          aria-label={`Appearance: ${mode}. Click to change.`}
+        >
+          {mode === 'system' ? '◑' : mode === 'light' ? '☀' : '☾'}
+        </button>
+
         <AnimatePresence>
           {state && (
             <motion.div
@@ -173,7 +184,7 @@ export default function App() {
               <button className="btn sm" onClick={toggleMonitor} disabled={busy}>
                 {monitoring ? '■ Stop monitor' : '▶ Start monitor'}
               </button>
-              <button className="btn sm danger" onClick={triggerClosure} disabled={busy}>
+              <button className="btn sm destructive" onClick={triggerClosure} disabled={busy}>
                 ⚡ Simulate road closure
               </button>
             </motion.div>
@@ -512,7 +523,7 @@ export default function App() {
         </div>
 
         <div className="map-region">
-          <MapPanel state={state} />
+          <MapPanel state={state} theme={resolved} />
 
           <AnimatePresence>
             {!state && (
