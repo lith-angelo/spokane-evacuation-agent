@@ -1249,6 +1249,9 @@ input[type='text']::placeholder {
 .k-model .kind {
   color: var(--status);
 }
+.k-skill .kind {
+  color: var(--hotspot);
+}
 .k-tool .kind {
   color: var(--text-tertiary);
 }

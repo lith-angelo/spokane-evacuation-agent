@@ -120,14 +120,31 @@ The runtime is implemented in these modules:
 | `geo.py` | Point-in-polygon, buffers, distance, closure intersection | shapely |
 | `safety.py` | Hard gates; owns the final resident-facing verdict | See §7 |
 | `agent.py` | Tool-calling loop against the NIM, step trace | Model never writes a verdict field |
+| `skill_memory.py` | Loads one fixed route skill, builds a privacy-minimised evaluation report, and accepts only allowlisted advisory lesson codes | Fail-open; never approves a route |
 | `tools.py` | Tool schemas exposed to the model | One per capability, thin over `sources/` |
-| `store.py` | SQLite at `EVAC_DB_PATH`: sessions, step traces, fetch snapshots | Snapshots are append-only |
+| `store.py` | SQLite at `EVAC_DB_PATH`: sessions, step traces, fetch snapshots, canonical skill lesson codes | Snapshots are append-only; lessons contain no household data |
 | `replay.py` | Fixture-backed responses when `EVAC_DATA_MODE=replay` | Same envelope, `data_class=replay` |
 | `main.py` | FastAPI app, SSE step stream, static `web/` mount | |
 
 `web/` is a small SPA: input (location, household needs, time), a map, the
 answer, a sources panel, and a live agent-step panel. `.gitignore` already
 anticipates `web/node_modules` and `web/dist`.
+
+### 4.1 Advisory skill-maintenance layer
+
+`skills/route-planning/SKILL.md` is loaded on every agent run. After the safety
+guard has already produced the resident-facing result, the local model receives
+an objective report containing route metrics and guard outcomes but no address,
+geometry, household prose, or model chain of thought. It may return no update or
+select one lesson from a fixed allowlist.
+
+Only the lesson code is persisted. The text injected on a later run comes from
+reviewed constants in `app/skill_memory.py`, never from model-authored text.
+Malformed output, low confidence, an ineligible lesson, a timeout, a missing
+document, or a database failure leaves the plan unchanged. Replay and live
+lesson codes are isolated from one another. The reflection runs in the
+background and may not delay, approve, reject, or mutate a route. Set
+`EVAC_SKILL_MEMORY_ENABLED=0` to remove the layer.
 
 ## 5. Data contract
 

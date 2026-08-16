@@ -51,6 +51,15 @@ CREATE TABLE IF NOT EXISTS snapshots (
     body         TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_snapshots_source ON snapshots(source_id, fetched_at);
+
+CREATE TABLE IF NOT EXISTS skill_lessons (
+    mode          TEXT NOT NULL,
+    code          TEXT NOT NULL,
+    first_learned TEXT NOT NULL,
+    last_learned  TEXT NOT NULL,
+    observations  INTEGER NOT NULL DEFAULT 1,
+    PRIMARY KEY (mode, code)
+);
 """
 
 _lock = threading.Lock()
@@ -174,3 +183,45 @@ def append_snapshot(
 def snapshot_count() -> int:
     with _lock, _connect() as conn:
         return int(conn.execute("SELECT COUNT(*) c FROM snapshots").fetchone()["c"])
+
+
+def record_skill_lesson(code: str, learned_at: str, *, mode: str = "replay") -> None:
+    """Activate an allowlisted advisory lesson without storing household data."""
+    with _lock, _connect() as conn:
+        conn.execute(
+            """INSERT INTO skill_lessons
+                 (mode, code, first_learned, last_learned, observations)
+               VALUES (?, ?, ?, ?, 1)
+               ON CONFLICT(mode, code) DO UPDATE SET
+                 last_learned = excluded.last_learned,
+                 observations = skill_lessons.observations + 1""",
+            (mode, code, learned_at, learned_at),
+        )
+
+
+def load_skill_lessons(limit: int = 5, *, mode: str = "replay") -> list[dict[str, Any]]:
+    """Return the most recently reinforced lessons, newest first."""
+    safe_limit = max(0, min(int(limit), 20))
+    if safe_limit == 0:
+        return []
+    with _lock, _connect() as conn:
+        rows = conn.execute(
+            """SELECT mode, code, first_learned, last_learned, observations
+               FROM skill_lessons
+               WHERE mode = ?
+               ORDER BY last_learned DESC, code ASC
+               LIMIT ?""",
+            (mode, safe_limit),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def skill_lesson_count(*, mode: str | None = None) -> int:
+    with _lock, _connect() as conn:
+        if mode is None:
+            row = conn.execute("SELECT COUNT(*) c FROM skill_lessons").fetchone()
+        else:
+            row = conn.execute(
+                "SELECT COUNT(*) c FROM skill_lessons WHERE mode = ?", (mode,)
+            ).fetchone()
+        return int(row["c"])

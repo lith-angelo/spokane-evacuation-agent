@@ -70,6 +70,25 @@ class Settings:
     db_path: Path = Path(os.getenv("EVAC_DB_PATH", str(REPO_ROOT / "data/sessions.sqlite3")))
     purge_demo_data_on_start: bool = _bool("EVAC_PURGE_DEMO_DATA_ON_START", True)
 
+    # Best-effort, non-authoritative route skill memory. The skill is read on
+    # every agent run, while a separate critic call may activate one of a small
+    # allowlisted set of advisory lessons. Nothing here can change the safety
+    # guard or approve a route.
+    skill_memory_enabled: bool = _bool("EVAC_SKILL_MEMORY_ENABLED", True)
+    route_skill_path: Path = Path(
+        os.getenv(
+            "EVAC_ROUTE_SKILL_PATH",
+            str(REPO_ROOT / "skills" / "route-planning" / "SKILL.md"),
+        )
+    )
+    skill_lesson_limit: int = int(os.getenv("EVAC_SKILL_LESSON_LIMIT", "5"))
+    skill_reflection_timeout_seconds: float = float(
+        os.getenv("EVAC_SKILL_REFLECTION_TIMEOUT_SECONDS", "20")
+    )
+    skill_min_confidence: float = float(
+        os.getenv("EVAC_SKILL_MIN_CONFIDENCE", "0.70")
+    )
+
     user_agent: str = "spokane-evac-agent/0.1 (Spark Hack Seattle prototype)"
 
     @property

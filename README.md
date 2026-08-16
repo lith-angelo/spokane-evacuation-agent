@@ -54,6 +54,14 @@ route validation and the re-entry decision are deterministic code in
 `app/safety.py`, which owns the final verdict. The model's text is rendered
 *around* that verdict and is stored in a separate field.
 
+**One advisory skill can learn without becoming safety authority.** Every run
+loads `skills/route-planning/SKILL.md`. After the resident-facing result is
+ready, the same local model reviews a privacy-minimised objective route report
+in the background and may select one allowlisted lesson code. Only reviewed,
+canonical lesson text is injected on later runs; arbitrary model text is never
+written into the prompt. The layer is optional, bounded, and fail-open, while
+`app/safety.py` remains authoritative.
+
 **Unknown is not safe.** Absence of an evacuation polygon is not an All Clear. A
 stale record may be shown but may never lower a level or clear a road. A shelter
 capability the source does not affirm is treated as absent — including when the
@@ -106,6 +114,20 @@ NemoClaw/OpenShell sandbox
    · api.mapbox.com (optional live location) · api.openaq.org (PM2.5)
    · firms.modaps.eosdis.nasa.gov (satellite thermal detections)
 ```
+
+The non-authoritative learn loop sits beside `app/agent.py`:
+
+```text
+fixed route skill -> plan -> deterministic route report -> local-model reflection
+       ^                                                        |
+       +-------- allowlisted advisory lesson in SQLite <--------+
+```
+
+Set `EVAC_SKILL_MEMORY_ENABLED=0` to remove this layer completely. A missing
+skill document, database error, malformed reflection, timeout, or rejected
+lesson leaves the original plan unchanged. Replay and live lessons are stored
+in separate scopes, so a synthetic demo observation is never applied in live
+mode.
 
 `EVAC_DATA_MODE=replay` serves fixtures **at the egress layer**, so every parser,
 geometry operation and safety gate above it runs the same code it runs live.
@@ -173,6 +195,6 @@ production, none present here.
 
 Add authenticated responder/resident roles, short-lived encrypted session
 storage, an official road-closure feed with a routing SLA, production alert
-delivery with explicit consent, and continuous evaluation against labelled
-historical incidents. Keep the deterministic safety guard authoritative as
-those capabilities are added.
+delivery with explicit consent, and expand the advisory reflection into
+continuous evaluation against labelled historical incidents. Keep the
+deterministic safety guard authoritative as those capabilities are added.

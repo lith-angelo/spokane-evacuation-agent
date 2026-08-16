@@ -415,6 +415,7 @@ class Consensus(BaseModel):
 
 class StepKind(str, Enum):
     MODEL = "model"
+    SKILL = "skill"
     TOOL = "tool"
     GUARD = "safety guard"
     MONITOR = "monitor"

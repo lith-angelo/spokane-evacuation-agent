@@ -5,6 +5,7 @@ import { SPRING_QUICK } from './motion.js'
 
 const KIND_TAG = {
   model: 'MODEL',
+  skill: 'LEARN',
   tool: 'TOOL',
   'safety guard': 'GUARD',
   monitor: 'MONITOR',
@@ -13,6 +14,7 @@ const KIND_TAG = {
 
 const KIND_CLASS = {
   model: 'k-model',
+  skill: 'k-skill',
   tool: 'k-tool',
   'safety guard': 'k-guard',
   monitor: 'k-monitor',

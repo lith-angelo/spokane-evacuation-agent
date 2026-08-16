@@ -29,6 +29,7 @@ from app.config import settings
 from app.models import StepKind
 from app.safety import decide
 from app.session import EvacuationSession
+from app.skill_memory import CANONICAL_LESSONS, route_skill
 from app.tools import TOOL_SCHEMAS
 
 MAX_TURNS = 8
@@ -84,10 +85,22 @@ class Agent:
             timeout=120.0,
             max_retries=1,
         )
+        self._reflection_tasks: set[asyncio.Task[None]] = set()
 
     async def run(self, session: EvacuationSession, user_message: str) -> EvacuationSession:
+        skill_context, lesson_codes = route_skill.prompt_context()
+        if skill_context:
+            session.step(
+                StepKind.SKILL,
+                "Route skill loaded",
+                detail=(
+                    f"advisory only · {len(lesson_codes)} learned lesson"
+                    f"{'s' if len(lesson_codes) != 1 else ''} applied"
+                ),
+                outcome="advisory",
+            )
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": SYSTEM_PROMPT + skill_context},
             {"role": "user", "content": self._frame(session, user_message)},
         ]
 
@@ -178,6 +191,7 @@ class Agent:
 
         await self._backfill(session, called)
         self._finalize(session, prose)
+        self._schedule_reflection(session)
         return session
 
     # --- helpers -------------------------------------------------------------
@@ -322,6 +336,99 @@ class Agent:
             latency_ms=int((time.monotonic() - started) * 1000),
         )
         session.persist()
+
+    # --- advisory learning loop ---------------------------------------------
+
+    def _schedule_reflection(self, session: EvacuationSession) -> None:
+        """Start a best-effort critic pass without delaying the evacuation answer."""
+        if not settings.skill_memory_enabled or not session.routes:
+            return
+        # Snapshot the objective facts now. A later request may reuse and mutate
+        # the same session while this background critic is still running.
+        report = route_skill.objective_report(session)
+        eligible = route_skill.eligible_codes(report)
+        if not eligible:
+            return
+        task = asyncio.create_task(
+            self._reflect_route_skill(session, report=report, eligible=eligible)
+        )
+        self._reflection_tasks.add(task)
+        task.add_done_callback(self._reflection_tasks.discard)
+
+    async def _reflect_route_skill(
+        self,
+        session: EvacuationSession,
+        *,
+        report: dict[str, Any] | None = None,
+        eligible: list[str] | None = None,
+    ) -> None:
+        """Let the local model choose one bounded lesson from objective evidence."""
+        started = time.monotonic()
+        try:
+            report = report or route_skill.objective_report(session)
+            eligible = eligible or route_skill.eligible_codes(report)
+            if not eligible:
+                return
+            completion = await asyncio.wait_for(
+                self.client.chat.completions.create(
+                    model=settings.inference_model,
+                    messages=route_skill.critic_messages(report, eligible),
+                    temperature=0.1,
+                    max_tokens=260,
+                    # The deployed Nemotron separates reasoning from final
+                    # content. This bounded classifier needs only the JSON
+                    # decision; disabling thinking avoids exhausting the token
+                    # budget before `message.content` is produced.
+                    extra_body={
+                        "top_k": 1,
+                        "chat_template_kwargs": {"enable_thinking": False},
+                    },
+                ),
+                timeout=settings.skill_reflection_timeout_seconds,
+            )
+            raw = completion.choices[0].message.content or ""
+            decision = route_skill.parse_decision(raw, eligible)
+            activated = route_skill.activate(decision)
+            latency = int((time.monotonic() - started) * 1000)
+
+            if activated and decision.lesson_code:
+                session.step(
+                    StepKind.SKILL,
+                    "Route skill learned an advisory lesson",
+                    detail=CANONICAL_LESSONS[decision.lesson_code],
+                    outcome="updated",
+                    latency_ms=latency,
+                )
+            else:
+                session.step(
+                    StepKind.SKILL,
+                    "Route skill reflection completed",
+                    detail="No reusable lesson passed the evidence and confidence gate.",
+                    outcome="unchanged",
+                    latency_ms=latency,
+                )
+            session.persist()
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            # This layer is deliberately fail-open. Do not expose prompt/model
+            # content in the trace; the exception type is enough to diagnose it.
+            session.step(
+                StepKind.SKILL,
+                "Route skill reflection skipped",
+                detail=f"advisory layer unavailable ({type(exc).__name__}); plan unchanged",
+                outcome="ignored",
+                latency_ms=int((time.monotonic() - started) * 1000),
+            )
+            session.persist()
+
+    async def shutdown(self) -> None:
+        """Cancel advisory work during process shutdown; safety work is already done."""
+        tasks = list(self._reflection_tasks)
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
 
 
 agent = Agent()

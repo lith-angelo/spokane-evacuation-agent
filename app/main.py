@@ -25,6 +25,7 @@ from app.config import REPO_ROOT, settings
 from app.egress import Outcome, egress
 from app.models import HouseholdNeeds, StepKind
 from app.session import EvacuationSession, registry
+from app.skill_memory import route_skill
 from app.sources import mapbox
 
 WEB_DIST = REPO_ROOT / "web" / "dist"
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
     if settings.replay and settings.purge_demo_data_on_start:
         store.purge_all()
     yield
+    await agent.shutdown()
     for s in registry.all():
         await monitor.supervisor.stop(s.session_id)
 
@@ -117,6 +119,7 @@ async def health() -> dict[str, Any]:
             "base_url": settings.inference_base_url,
             "detail": nim_detail,
         },
+        "skill_memory": route_skill.status(),
         "privacy": {
             "synthetic_only": settings.replay,
             "delivery": "simulated",

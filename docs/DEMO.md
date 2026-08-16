@@ -170,8 +170,13 @@ Reason: recipient random-person@example.com was not approved in the current sess
   served locally. The header chip is live; nothing leaves the box for inference.
 - **NemoClaw** orchestrates the agent loop and owns the sandbox.
 - **OpenShell** enforces the egress policy the demo just ran into.
+- **One bounded learn loop** loads the same advisory route skill on every run.
+  After the answer is ready, the local model reviews objective route metrics in
+  the background and may activate one allowlisted lesson for the next run. In
+  the activity drawer this appears as `LEARN`; arbitrary model text is never
+  written into the skill, and the deterministic guard remains authoritative.
 - The whole trace is local: `curl localhost:8811/api/health` shows the sandbox,
-  the policy, the model and the snapshot count in one object.
+  the policy, the model, `skill_memory`, and the snapshot count in one object.
 
 ## 3:35–4:00 — Close
 
@@ -248,7 +253,15 @@ one has been verified to fail when its gate is removed.
 **"How much of this is the LLM?"**
 Intent parsing, tool selection, and the prose. Point-in-polygon, level
 comparison, constraint filtering, staleness, route validation and the re-entry
-decision are all deterministic code with no model in the path.
+decision are all deterministic code with no model in the path. A second local
+model call may select a bounded advisory lesson after the result is complete;
+that lesson can influence later orchestration wording and ranking attention,
+but cannot approve a route or alter a hard rule.
+
+**"Does the agent train itself?"**
+No model weights change. This is a small skill-memory loop: the local model
+reflects on objective route outcomes and may activate reviewed advice for later
+runs. It is deliberately fail-open and removable with one environment flag.
 
 **"Is this ready for real use?"**
 No, and it says so on every screen. It is a prototype: no authentication, no
