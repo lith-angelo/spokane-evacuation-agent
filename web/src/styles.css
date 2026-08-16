@@ -501,8 +501,11 @@ button:disabled {
 
 .rail {
   position: relative;
+  height: 100%;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding: var(--space-4) var(--space-4) var(--space-5);
   display: flex;
   flex-direction: column;
@@ -513,12 +516,20 @@ button:disabled {
   scrollbar-color: var(--scrollbar) transparent;
 }
 
+/* The rail owns vertical scrolling. Without this, flexbox shrinks every result
+   card until they all fit, which makes the information look crowded and never
+   creates any overflow for the scrollbar to move through. */
+.rail > .panel {
+  flex: 0 0 auto;
+}
+
 .rail::-webkit-scrollbar {
   width: 0.5rem;
 }
 .rail::-webkit-scrollbar-thumb {
   background: var(--scrollbar);
   border-radius: 999px;
+  min-height: 2.5rem;
 }
 .rail::-webkit-scrollbar-track {
   background: transparent;

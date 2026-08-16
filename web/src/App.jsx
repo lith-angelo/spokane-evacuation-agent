@@ -247,7 +247,7 @@ export default function App() {
       </div>
 
       <div className="main">
-        <div className="rail">
+        <aside className="rail" aria-label="Evacuation details">
           <Panel title="Resident" className="resident-panel">
             <div className="body">
               <label className="field-label t-caption" htmlFor="loc">
@@ -600,7 +600,7 @@ export default function App() {
               </Panel>
             )}
           </AnimatePresence>
-        </div>
+        </aside>
 
         <div className="map-region">
           <MapPanel state={state} theme={resolved} />
