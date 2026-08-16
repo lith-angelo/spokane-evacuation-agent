@@ -145,6 +145,9 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
   loop, explain engineering depth/hardware choices, and close with impact.
 - Added `docs/SUBMISSION.md` with ready submission copy, exact checklist and a
   four-minute run-of-show; added the Tailscale demo URL and next steps to README.
+- Re-ran the complete 14-stage verifier against the Tailscale-bound,
+  OpenShell-forwarded release candidate after all code hardening; exit code 0,
+  all checks passed.
 - C18 is now `BLOCKED` only on real roster/contact/single-submitter facts that
   cannot be inferred safely. C19 remains open only for merge, video and form.
 
