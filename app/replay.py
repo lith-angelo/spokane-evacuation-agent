@@ -40,6 +40,19 @@ MANIFEST = FIXTURE_DIR / "manifest.json"
 # same code path that live data would exercise.
 _phase: str = "before"
 
+# Captured demo addresses let the replay remain testable when an external
+# geocoder is unavailable. These are location inputs only; they do not bypass
+# hazard lookup, shelter filtering, route generation or route validation.
+_DEMO_LOCATIONS: tuple[dict[str, Any], ...] = (
+    {
+        "id": "replay:address:8414-n-molly",
+        "label": "8414 North Molly Street, Spokane, Washington 99208, United States",
+        "lat": 47.734881,
+        "lon": -117.470206,
+        "source": "REPLAY",
+    },
+)
+
 
 def set_phase(phase: str) -> None:
     global _phase
@@ -93,6 +106,19 @@ def is_scenario_query(query: str) -> bool:
     """
     normalized = " ".join((query or "").lower().replace("-", " ").split())
     return "rifle club" in normalized
+
+
+def demo_location_suggestions(query: str, *, limit: int = 5) -> list[dict[str, Any]]:
+    """Captured addresses matching every typed term, for replay-mode demos."""
+    terms = " ".join((query or "").lower().replace(",", " ").split()).split()
+    if not terms:
+        return []
+    matches = []
+    for place in _DEMO_LOCATIONS:
+        haystack = " ".join(place["label"].lower().replace(",", " ").split())
+        if all(term in haystack for term in terms):
+            matches.append(dict(place))
+    return matches[: max(1, min(limit, 5))]
 
 
 def clear_cache() -> None:

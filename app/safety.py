@@ -22,7 +22,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.geo import buffer_km, clearance_km, intersects, to_geometry
+from shapely.geometry import Point
+from shapely.ops import split
+
+from app.geo import clearance_km, intersects, to_geometry
 from app.models import (
     BlockedAction,
     Closure,
@@ -250,6 +253,67 @@ def filter_shelters(
 # --- Gate 3: route validation ------------------------------------------------
 
 
+def _inside_states_along_route(geom, zone_geom) -> list[bool]:
+    """Ordered inside/outside states after splitting a route at the boundary.
+
+    A Level 3 order describes where somebody must leave; it is not itself a
+    road closure. The useful safety question is therefore whether the route
+    exits once and stays out, not what percentage of its length starts inside.
+    """
+    try:
+        pieces = list(split(geom, zone_geom.boundary).geoms)
+        pieces.sort(key=lambda part: geom.project(part.interpolate(0.5, normalized=True)))
+        raw = [zone_geom.covers(part.interpolate(0.5, normalized=True)) for part in pieces]
+    except Exception:
+        # Boundary-overlap edge cases can make GEOS refuse a split. A bounded
+        # sampling fallback is conservative and deterministic for road routes.
+        raw = [
+            zone_geom.covers(geom.interpolate(i / 200, normalized=True))
+            for i in range(201)
+        ]
+
+    states: list[bool] = []
+    for state in raw:
+        if not states or states[-1] is not state:
+            states.append(state)
+    return states
+
+
+def _level_3_zone_rejection(geom, zone_geom, ctx: HazardContext) -> str | None:
+    """Return a reason only when a route fails to evacuate a Level 3 zone.
+
+    Starting inside is expected. A valid evacuation route must end outside and
+    may not enter the zone again after reaching the outside. A resident who
+    starts outside may never be routed through the zone.
+    """
+    if geom.geom_type != "LineString":
+        return "route geometry is not a single continuous path"
+
+    first = Point(geom.coords[0])
+    last = Point(geom.coords[-1])
+    starts_inside = zone_geom.covers(Point(ctx.lon, ctx.lat)) or zone_geom.covers(first)
+    ends_inside = zone_geom.covers(last)
+    states = _inside_states_along_route(geom, zone_geom)
+
+    if starts_inside:
+        if ends_inside:
+            return "does not exit the Level 3 zone"
+
+        # Safe shapes are inside -> outside, or simply outside when the router
+        # snapped the first road point just beyond the boundary. Any inside
+        # state after the first outside state is a re-entry.
+        first_outside = next((i for i, state in enumerate(states) if not state), None)
+        if first_outside is None:
+            return "does not exit the Level 3 zone"
+        if any(states[first_outside + 1 :]):
+            return "exits and then re-enters the Level 3 zone"
+        return None
+
+    if any(states) or geom.intersects(zone_geom):
+        return "enters a Level 3 zone from outside"
+    return None
+
+
 def validate_route(
     route: RouteCandidate,
     ctx: HazardContext,
@@ -296,27 +360,19 @@ def validate_route(
             )
             hit.append(inc.incident_id)
 
-    # Level 3 zones
+    # Level 3 evacuation zones. They are action areas, not fire polygons: a
+    # resident inside one must be allowed to drive out. Reject only a route
+    # that never exits, re-enters after exiting, or takes an outside resident
+    # into the ordered area.
     for z in ctx.zones:
         if z.level is not EvacLevel.LEVEL_3:
             continue
         zg = to_geometry(z.record.geometry)
         if zg is None:
             continue
-        # The origin is usually inside the Level 3 zone — leaving it is the
-        # point. Only a route that re-enters or runs along it is a problem, so
-        # measure how much of the route lies inside rather than whether it
-        # touches at all.
-        try:
-            inside = geom.intersection(zg).length
-            share = inside / geom.length if geom.length else 0.0
-        except Exception:
-            share = 0.0
-        if share > 0.35:
-            reasons.append(
-                f"{share:.0%} of this route stays inside the Level 3 zone "
-                f"({z.boundary_desc or z.zone_id})"
-            )
+        zone_reason = _level_3_zone_rejection(geom, zg, ctx)
+        if zone_reason:
+            reasons.append(f"{zone_reason} ({z.boundary_desc or z.zone_id})")
             hit.append(z.zone_id)
 
     route.intersects = hit

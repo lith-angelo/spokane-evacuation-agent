@@ -11,7 +11,7 @@ import asyncio
 import json
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +23,7 @@ from app import monitor, replay, store, tools
 from app.agent import agent
 from app.config import REPO_ROOT, settings
 from app.egress import Outcome, egress
-from app.models import HouseholdNeeds, StepKind
+from app.models import HouseholdNeeds, Place, Record, SourceId, SourceStatus, StepKind
 from app.session import EvacuationSession, registry
 from app.sources import mapbox
 
@@ -53,12 +53,28 @@ app.add_middleware(
 # --- request models ----------------------------------------------------------
 
 
+class ResolvedLocationInput(BaseModel):
+    """Coordinates already selected from the address autocomplete result.
+
+    The browser has just resolved these coordinates through the governed
+    ``/api/geocode`` endpoint. Carrying them into ``/api/plan`` avoids a second
+    geocoder request that can fail independently or resolve the same text
+    differently.
+    """
+
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+    label: str = Field(min_length=1, max_length=240)
+    source: Literal["MAPBOX", "REPLAY"] = "MAPBOX"
+
+
 class PlanRequest(BaseModel):
     query: str = Field(..., description="Landmark or address")
     message: str | None = None
     needs: HouseholdNeeds = Field(default_factory=HouseholdNeeds)
     approved_contacts: list[str] = Field(default_factory=list)
     session_id: str | None = None
+    location: ResolvedLocationInput | None = None
 
 
 class MessageRequest(BaseModel):
@@ -149,7 +165,13 @@ async def geocode_suggestions(
     Results are temporary Mapbox lookups and are constrained to the product's
     Spokane County service area by the same source adapter used by the agent.
     """
-    places, result = await mapbox.search(" ".join(q.split()), limit=5)
+    normalized = " ".join(q.split())
+    if settings.replay:
+        demo_results = replay.demo_location_suggestions(normalized, limit=5)
+        if demo_results:
+            return {"results": demo_results}
+
+    places, result = await mapbox.search(normalized, limit=5)
     if not result.ok:
         raise HTTPException(status_code=502, detail=result.error or "address search unavailable")
     return {
@@ -159,6 +181,7 @@ async def geocode_suggestions(
                 "label": place.label,
                 "lat": place.lat,
                 "lon": place.lon,
+                "source": "MAPBOX",
             }
             for place in places
         ]
@@ -174,6 +197,55 @@ async def plan(req: PlanRequest) -> dict[str, Any]:
     session.query = req.query
     session.needs = req.needs
     session.approved_contacts = list(req.approved_contacts)
+
+    if req.location is not None:
+        # The product's authoritative evacuation and shelter layers cover
+        # Spokane County only. Never let a client-supplied coordinate bypass
+        # that same service-area limit used by Mapbox search.
+        west, south, east, north = (-118.20, 47.28, -116.85, 48.10)
+        if not (west <= req.location.lon <= east and south <= req.location.lat <= north):
+            raise HTTPException(422, "selected location is outside the Spokane service area")
+
+        selected_source = (
+            SourceId.MAPBOX if req.location.source == "MAPBOX" else SourceId.DERIVED
+        )
+        record = Record(
+            record_id=f"selected:{session.session_id}",
+            source_id=selected_source,
+            data_class="derived" if req.location.source == "MAPBOX" else "replay",
+            ttl_seconds=900,
+            provenance_url=(
+                "https://api.mapbox.com/search/geocode/v6/forward"
+                if req.location.source == "MAPBOX"
+                else "local replay address catalog"
+            ),
+            geometry={
+                "type": "Point",
+                "coordinates": [req.location.lon, req.location.lat],
+            },
+            payload={
+                "input_method": "autocomplete_selection",
+                "autocomplete_source": req.location.source,
+            },
+        )
+        session.place = Place(
+            lat=req.location.lat,
+            lon=req.location.lon,
+            label=req.location.label,
+            record=record,
+        )
+        session.record_source(
+            SourceStatus(
+                source_id=selected_source,
+                outcome="OK" if req.location.source == "MAPBOX" else "REPLAY",
+                detail=(
+                    "selected from governed address autocomplete"
+                    if req.location.source == "MAPBOX"
+                    else "selected from captured replay address catalog"
+                ),
+                record_count=1,
+            )
+        )
 
     message = req.message or (
         f"I'm near {req.query}. My household has {req.needs.describe()}. "

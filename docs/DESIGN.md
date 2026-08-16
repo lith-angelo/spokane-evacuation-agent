@@ -62,6 +62,10 @@ contribution: the **provenance envelope** on every record and the
    process when on.
 5. **Snapshots, not overwrites.** Each fetch is archived. Conflicts between
    sources are shown, and the conservative reading wins.
+6. **Resolve an address once.** Autocomplete returns a label and coordinates;
+   the browser submits that selected result with the plan. The backend checks
+   the Spokane service boundary and reuses it instead of making a second,
+   independently fallible geocoder request.
 
 ## 3. Runtime topology
 
@@ -197,8 +201,10 @@ Any gate failing zeroes the recommendation and forces the conservative branch.
 2. **Hard constraints are hard.** Mobility, medical, and pets/service animals
    filter shelters; they are never traded off against distance.
 3. **No route through hazard.** A candidate route intersecting a current
-   perimeter (plus buffer), a Level 3 zone, or a known closure is rejected. If
-   nothing survives, say so — do not return the least-bad option as if safe.
+   perimeter (plus buffer) or a known closure is rejected. A resident who starts
+   inside Level 3 must be routed out without re-entering; a resident outside may
+   not be routed into the zone. If nothing survives, say so — do not return the
+   least-bad option as if safe.
 4. **No re-entry without an explicit all-clear.** Absence of a zone from a
    public layer is not an all-clear. Hazmat or utility clearance unknown ⇒ no
    return recommendation.

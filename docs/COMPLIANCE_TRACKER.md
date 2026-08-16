@@ -17,7 +17,7 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 | C09 | NemoClaw inference configuration uses Lightning | PASS | NemoClaw reports `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4`; `inference.local` is reachable and the host vLLM backend is healthy. | Preserve this status in final verification. |
 | C10 | Unsafe route is rejected with an explicit reason | PASS | Full verifier generated three candidates and rejected route C for the W Driscoll Blvd closure. | Preserve in final verification. |
 | C11 | Closure triggers autonomous replan and notification preparation | PASS | Monitor detected the Francis Ave closure, changed route A to route B, and prepared a labelled simulated notification. | Preserve in final verification. |
-| C12 | Backend, frontend, and full demo validation pass | PASS | Backend 72/72, frontend 22/22, production build, and the complete `verify_demo.py` flow pass through the contained public port. | Repeat after final changes. |
+| C12 | Backend, frontend, and full demo validation pass | PASS | Backend 79/79, frontend 22/22, production build, and the complete `verify_demo.py` flow pass through the contained public port. | Repeat after final changes. |
 | C13 | No credentials are committed or exposed publicly | IN PROGRESS | Current tree, untracked files, and every Git revision scan clean. Sensitive URL query values are redacted before logging/persistence. A dedicated Mapbox token was created, installed only in host/sandbox `.env` files, verified through live autocomplete, and the previously exposed default Mapbox token was refreshed. The unused DeepSeek key still requires account-side revocation. | Revoke the previously shared DeepSeek key and confirm that no active deployment depends on it. |
 | C14 | Demo personal data is synthetic and privacy limitations are clear | PASS | UI has an always-visible synthetic-data/no-delivery/not-911 notice; replay startup purges sessions, steps and snapshots; health exposes retention; public port binds only to the GN100 Tailscale address. | Preserve the Tailscale-only bind and restart-purge behavior. |
 | C15 | Public GitHub repository contains the final system | PASS | Reviewed runtime scope was committed as `cf00ff0`, pushed to public branch `codex/gn100-contained-demo`, and opened as draft PR #2; an unauthenticated raw README request returned HTTP 200. Experimental unused training artifacts were intentionally excluded. | Merge PR #2 after teammate review; preserve the public branch until submission. |
@@ -176,6 +176,25 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 - Deployed the rebuilt frontend into the contained GN100 runtime. With six
   populated cards, the rail measured 2,073 px of content in a 541 px viewport;
   a 620 px rail scroll left the map bounds unchanged.
+
+### 2026-08-15 - Level 3 egress and selected-address routing
+
+- Replaced the route-length-in-zone heuristic with evacuation semantics: a
+  resident inside Level 3 may exit once and stay out; routes that never exit,
+  re-enter, or enter from outside still fail closed.
+- Preserved hard rejection for fire perimeters, the 1.5 km fire buffer, and
+  road closures.
+- Carried the coordinates selected by address autocomplete into `/api/plan`,
+  avoiding a second geocoder request and preventing valid locations from being
+  lost between lookup and routing.
+- Added an explicitly labelled captured replay suggestion for 8414 North Molly
+  Street so the demo remains testable during an upstream DNS outage; hazard,
+  shelter, routing, and safety decisions still run normally.
+- Verified that address end to end at Level 3: Spokane Falls Community College,
+  route A selected, 7.21 km, about 11.5 minutes, with two routes approved.
+- Ran 49 focused route-safety tests, all 79 backend tests, all 22 frontend
+  tests, the production build, and the complete 14-stage demo verifier; every
+  check passed through the contained GN100 service.
 
 ## Change rule
 

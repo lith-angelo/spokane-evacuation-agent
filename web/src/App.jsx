@@ -39,6 +39,7 @@ export default function App() {
   const [health, setHealth] = useState(null)
   const [query, setQuery] = useState(PRESET.query)
   const [locationResolved, setLocationResolved] = useState(true)
+  const [selectedLocation, setSelectedLocation] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [geocodeStatus, setGeocodeStatus] = useState('')
   const skipGeocode = useRef(false)
@@ -92,6 +93,7 @@ export default function App() {
   const chooseLocation = (place) => {
     skipGeocode.current = true
     setQuery(place.label)
+    setSelectedLocation(place)
     setLocationResolved(true)
     setSuggestions([])
     setGeocodeStatus('')
@@ -139,6 +141,14 @@ export default function App() {
           needs,
           approved_contacts: PRESET.approved_contacts,
           session_id: state?.session_id,
+          location: selectedLocation
+            ? {
+                lat: selectedLocation.lat,
+                lon: selectedLocation.lon,
+                label: selectedLocation.label,
+                source: selectedLocation.source || 'MAPBOX',
+              }
+            : null,
         }),
       })
       setState(result)
@@ -260,7 +270,9 @@ export default function App() {
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value)
+                    setSelectedLocation(null)
                     setLocationResolved(false)
+                    setState(null)
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && !busy && query.trim() && run()}
                   placeholder="e.g. Rifle Club Road, Spokane County"

@@ -123,9 +123,10 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "name": "validate_route",
             "description": (
                 "Safety gate for candidate routes. Rejects any route intersecting a "
-                "hard closure, a fire perimeter plus buffer, or a Level 3 zone, then "
-                "ranks survivors by hazard margin. A route may only be recommended "
-                "after this approves it."
+                "hard closure or a fire perimeter plus buffer. A resident inside a "
+                "Level 3 zone must exit it without re-entering; a resident outside "
+                "may not be routed into one. Survivors are ranked by hazard margin, "
+                "and a route may only be recommended after this approves it."
             ),
             "parameters": {"type": "object", "properties": {}},
         },
@@ -213,6 +214,26 @@ async def geocode(session: EvacuationSession, query: str | None = None) -> dict[
     q = (query or session.query or "").strip()
     if not q:
         return {"error": "no location given"}
+
+    # The UI submits the exact coordinates returned by its governed Mapbox
+    # autocomplete request. Reusing that selected result prevents a model-initiated
+    # geocode call from discarding a valid location when the upstream DNS/API is
+    # temporarily unavailable between selection and planning.
+    existing_record = session.place.record if session.place else None
+    if (
+        session.place is not None
+        and existing_record is not None
+        and existing_record.payload.get("input_method") == "autocomplete_selection"
+        and q.casefold() == session.query.strip().casefold()
+    ):
+        return {
+            "lat": session.place.lat,
+            "lon": session.place.lon,
+            "label": session.place.label,
+            "source": existing_record.source_id.value,
+            "data_class": existing_record.data_class,
+            "reused": True,
+        }
 
     # Keep the authored demo internally consistent: its closure geometry and
     # captured route alternatives were built from the replayed Rifle Club

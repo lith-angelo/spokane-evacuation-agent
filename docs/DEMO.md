@@ -73,8 +73,8 @@ the router. Route C is rejected — it runs through a closure on W Driscoll Blvd
 Route A is selected. Show the map: the grey dashed line is the rejected route.
 
 > A router returning a path is not a safety claim. The validator rejects
-> anything that touches a closure, a fire perimeter plus a 1.5 km buffer, or
-> spends most of its length inside a Level 3 zone.
+> anything that touches a closure or a fire perimeter plus a 1.5 km buffer. A
+> route starting inside Level 3 must exit the ordered area and stay outside.
 
 **3. The verdict is not written by the model.** Point at the panel header —
 *"decided by the safety guard, not the model"* — and at the model's prose
@@ -177,6 +177,12 @@ highway alerts and the 113-site emergency facility list are **real, captured
 live**. The evacuation overlay — zones, activated shelters, local closures — is
 **authored**, because SREC publishes nothing when no evacuation is running. On
 the day the fixtures were built that layer returned a literal `{"count":0}`.
+
+For the affected-address path, type **8414 North Molly Street** and choose the
+labelled replay suggestion. The selected coordinates are submitted with the
+plan, so the backend does not repeat the geocoder call. Candidate road routes
+still come from OSRM and must pass the same deterministic fire, closure, and
+Level 3 exit checks before the map draws one in blue.
 
 **Live** (`./scripts/run.sh --live`) fetches everything at request time through
 the OpenShell policy, and on a quiet day it tells a different but arguably

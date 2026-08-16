@@ -279,8 +279,76 @@ class TestRouteValidation:
         ctx = HazardContext(
             *ORIGIN, needs=HouseholdNeeds(), zones=[zone(EvacLevel.LEVEL_3)]
         )
-        r = validate_route("route-A" and route("route-A", SAFE_COORDS), ctx)
+        r = validate_route(route("route-A", SAFE_COORDS), ctx)
         assert r.approved is True
+
+    def test_mostly_inside_route_is_allowed_when_it_exits_once(self):
+        """Time spent escaping is not a hazard; failing to escape is."""
+        ctx = HazardContext(
+            *ORIGIN, needs=HouseholdNeeds(), zones=[zone(EvacLevel.LEVEL_3)]
+        )
+        r = validate_route(
+            route(
+                "route-long-exit",
+                [
+                    [-117.4938, 47.7204],
+                    [-117.48, 47.72],
+                    [-117.46, 47.72],
+                    [-117.42, 47.71],
+                    [-117.401, 47.70],
+                    [-117.39, 47.67],
+                ],
+            ),
+            ctx,
+        )
+        assert r.approved is True
+        assert r.rejection_reason is None
+
+    def test_route_that_never_exits_level_3_is_rejected(self):
+        ctx = HazardContext(
+            *ORIGIN, needs=HouseholdNeeds(), zones=[zone(EvacLevel.LEVEL_3)]
+        )
+        r = validate_route(
+            route("route-trapped", [[-117.4938, 47.7204], [-117.45, 47.71]]), ctx
+        )
+        assert r.approved is False
+        assert "does not exit" in r.rejection_reason
+
+    def test_route_that_exits_then_reenters_level_3_is_rejected(self):
+        ctx = HazardContext(
+            *ORIGIN, needs=HouseholdNeeds(), zones=[zone(EvacLevel.LEVEL_3)]
+        )
+        r = validate_route(
+            route(
+                "route-reentry",
+                [
+                    [-117.4938, 47.7204],
+                    [-117.39, 47.72],
+                    [-117.45, 47.71],
+                    [-117.39, 47.67],
+                ],
+            ),
+            ctx,
+        )
+        assert r.approved is False
+        assert "re-enters" in r.rejection_reason
+
+    def test_route_from_outside_may_not_enter_level_3(self):
+        ctx = HazardContext(
+            47.72,
+            -117.62,
+            needs=HouseholdNeeds(),
+            zones=[zone(EvacLevel.LEVEL_3)],
+        )
+        r = validate_route(
+            route(
+                "route-through-zone",
+                [[-117.62, 47.72], [-117.50, 47.72], [-117.39, 47.72]],
+            ),
+            ctx,
+        )
+        assert r.approved is False
+        assert "enters a Level 3 zone" in r.rejection_reason
 
     def test_negative_control_no_survivors_is_stated_not_softened(self):
         """When everything is rejected the answer must say so, not pick least-bad."""
