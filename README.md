@@ -42,9 +42,9 @@ To present it, follow [docs/DEMO.md](docs/DEMO.md).
 
 ## Demo access
 
-On the event network, open `http://100.84.72.29:8811`. The port is bound only
-to the GN100's Tailscale address and forwards into the OpenShell sandbox; it is
-not a public Internet deployment.
+On the event tailnet, open `http://gn100-2b2a:8811`. Tailscale Serve forwards
+that hostname into the OpenShell sandbox; it is not a public Internet
+deployment.
 
 ## What makes it more than an API wrapper
 

@@ -12,7 +12,7 @@ https://airtable.com/appCdxYXDYp7snYbP/pagqXe6ElIlXx6oa3/form
 - **Bounty:** Best Use of NVIDIA Nemotron
 - **Repository:**
   https://github.com/linyueduan5-code/spokane-evacuation-agent
-- **Demo access (event Tailscale only):** `http://100.84.72.29:8811`
+- **Demo access (event Tailscale only):** `http://gn100-2b2a:8811`
 - **Team roster:** REQUIRED - add names, roles, and contacts before submission.
 - **Video URL:** REQUIRED - add the unlisted YouTube or Vimeo URL.
 
@@ -94,8 +94,8 @@ Keep the camera on and minimize cuts.
 ## Final pre-submit commands
 
 ```bash
-curl http://100.84.72.29:8811/api/health
-.venv/bin/python scripts/verify_demo.py http://100.84.72.29:8811
+curl http://gn100-2b2a:8811/api/health
+.venv/bin/python scripts/verify_demo.py http://gn100-2b2a:8811
 ```
 
 Require `policy_enforced=true`, the exact Lightning model ID and `All checks
