@@ -119,6 +119,8 @@ cannot use would have made the allowlist dishonest.
 - [docs/SOURCES.md](docs/SOURCES.md) — verified endpoints, egress signatures,
   resolved open decisions
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture, data contract, safety rules
+- [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) — pinned dependency,
+  license, and open-source-age evidence
 - [docs/PLAN.md](docs/PLAN.md) — the milestones this was built against
 
 ## Tests

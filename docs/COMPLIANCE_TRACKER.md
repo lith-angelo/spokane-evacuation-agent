@@ -20,11 +20,11 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 | C12 | Backend, frontend, and full demo validation pass | PASS | Backend 72/72, frontend 20/20, production build, and the complete `verify_demo.py` flow pass through the contained public port. | Repeat after final changes. |
 | C13 | No credentials are committed or exposed publicly | IN PROGRESS | Current tree, untracked files, and every Git revision scan clean. Sensitive URL query values are redacted before logging/persistence. The previously shared Mapbox public token and unused DeepSeek key still require account-side rotation. | Rotate both shared credentials, update only the sandbox `.env`, and repeat the live Mapbox probe. |
 | C14 | Demo personal data is synthetic and privacy limitations are clear | PASS | UI has an always-visible synthetic-data/no-delivery/not-911 notice; replay startup purges sessions, steps and snapshots; health exposes retention; public port binds only to the GN100 Tailscale address. | Preserve the Tailscale-only bind and restart-purge behavior. |
-| C15 | Public GitHub repository contains the final system | BLOCKED | Public repository is reachable but the GN100 worktree has modified and untracked implementation files not on the public branch. | Review scope, commit, push, and verify repository from a signed-out request. |
+| C15 | Public GitHub repository contains the final system | PASS | Reviewed runtime scope was committed as `cf00ff0`, pushed to public branch `codex/gn100-contained-demo`, and opened as draft PR #2; an unauthenticated raw README request returned HTTP 200. Experimental unused training artifacts were intentionally excluded. | Merge PR #2 after teammate review; preserve the public branch until submission. |
 | C16 | Required code was written during the event | PASS | The pre-event initialization commit contains no files; functional commits begin during the hackathon. | Preserve commit history and do not squash it into a misleading pre-event timestamp. |
-| C17 | Third-party code complies with the two-week open-source rule | NOT VERIFIED | Dependencies are established open-source packages, but versions are loosely ranged and no SBOM/license notice exists. | Pin versions and record package, version, license, repository, and first-publication evidence. |
+| C17 | Third-party code complies with the two-week open-source rule | PASS | Python and Node direct dependencies are exact-pinned; complete lockfiles exist; `docs/THIRD_PARTY_NOTICES.md` records versions, licenses, upstreams, and public-since dates years before the 2026-08-01 cutoff. | Preserve lockfiles and notices; do not add an unreviewed dependency before code freeze. |
 | C18 | Team size, onsite GN100 rule, track-specific Notion rules, and video criteria | NOT VERIFIED | These facts are not available from the repository or supplied PDF. | Team confirms 3-5 people and onsite device; attach/export the event Notion requirements and check every item. |
-| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | Repository exists and README contains a description; final code and video are not verified. | Public final repository, final project description, and video link are all submitted before the deadline. |
+| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | Final code is public in PR #2 and README contains the project description; the final video and submission-form confirmation are not verified. | Merge the reviewed PR, record a 3-5 minute video, add its link, and submit before the deadline. |
 | C20 | Documentation describes the real security boundary | PASS | README distinguishes the submitted contained runtime from host development mode, and the observed deployment now matches the contained-runtime description. | Recheck after any deployment or architecture change. |
 
 ## Verification log
@@ -116,6 +116,22 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 - Backend suite now reports 72 passing tests; frontend remains 20/20 and the
   production build passes. C14 moved to `PASS`; C13 still needs account-side
   rotation of the two credentials previously pasted into chat.
+
+### 2026-08-15 - Public branch and dependency audit
+
+- Reviewed the mixed worktree and excluded the unused experimental fire-growth
+  training files from the submission scope.
+- Committed the contained runtime as `cf00ff0`, pushed public branch
+  `codex/gn100-contained-demo`, and opened draft PR #2 against `main`.
+- Verified the branch without GitHub authentication using a raw HTTP request.
+- Exact-pinned all direct Python and Node dependencies, captured the complete
+  tested Python environment, and retained npm integrity hashes in its lockfile.
+- Added license, upstream, and public-since evidence for every direct dependency;
+  all upstream projects predate the event cutoff by years.
+- `pip check`, lock/environment diff, 72 backend tests, clean npm install,
+  20 frontend tests, npm audit, and production build all passed.
+- C15 and C17 moved to `PASS`; C19 remains open for teammate review/merge and
+  the required video/submission-form steps.
 
 ## Change rule
 
