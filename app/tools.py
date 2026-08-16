@@ -12,6 +12,7 @@ unchanged.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any
 
@@ -24,11 +25,17 @@ from app.models import (
     Shelter,
     StepKind,
 )
-from app.safety import HazardContext, can_return_home, filter_shelters, validate_all
+from app.safety import (
+    HazardContext,
+    assess_shelter_air_quality,
+    can_return_home,
+    filter_shelters,
+    validate_all,
+)
 from app.session import EvacuationSession
 from app.config import settings
 from app import replay
-from app.sources import firecam, mapbox, nominatim, osrm, srec, wfigs, wsdot
+from app.sources import firms, firecam, mapbox, nominatim, openaq, osrm, srec, wfigs, wsdot
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
@@ -197,6 +204,7 @@ def _ctx(session: EvacuationSession) -> HazardContext:
         zone=session.zone,
         zones=session.zones,
         incidents=session.incidents,
+        air_quality_readings=session.air_quality_readings,
         shelters=session.shelters,
         closures=session.closures,
         routes=session.routes,
@@ -204,7 +212,71 @@ def _ctx(session: EvacuationSession) -> HazardContext:
         blocked=session.blocked,
         hazmat_cleared=session.hazmat_cleared,
         hazmat_note=session.hazmat_note,
+        air_quality_medical_threshold=settings.air_quality_medical_threshold,
+        air_quality_station_radius_km=settings.air_quality_station_radius_km,
     )
+
+
+def _aq_lookup_recent(session: EvacuationSession) -> bool:
+    status = next(
+        (s for s in session.sources if s.source_id is SourceId.OPENAQ), None
+    )
+    if status is None:
+        return False
+    return (time.time() - status.fetched_at.timestamp()) < 300
+
+
+async def _load_air_quality(
+    session: EvacuationSession, points: list[tuple[float, float]]
+) -> None:
+    """Fetch AQ evidence internally; this is deliberately not a model tool."""
+    if not points or _aq_lookup_recent(session):
+        return
+
+    unique: list[tuple[float, float]] = []
+    seen: set[tuple[float, float]] = set()
+    for lat, lon in points:
+        key = (round(lat, 3), round(lon, 3))
+        if key not in seen:
+            seen.add(key)
+            unique.append((lat, lon))
+        if len(unique) >= 5:
+            break
+
+    batches = await asyncio.gather(
+        *(openaq.get_pm25_near(lat, lon) for lat, lon in unique)
+    )
+    merged = {reading.record.record_id: reading for reading in session.air_quality_readings}
+    for readings, _ in batches:
+        for reading in readings:
+            merged[reading.record.record_id] = reading
+    session.air_quality_readings = list(merged.values())
+
+    usable_results = [result for _, result in batches if result.ok]
+    representative = usable_results[0] if usable_results else batches[0][1]
+    session.record_source(
+        _status(
+            SourceId.OPENAQ,
+            representative,
+            len(session.air_quality_readings),
+            _stale_count([reading.record for reading in session.air_quality_readings]),
+        )
+    )
+
+
+def _route_aq_points(session: EvacuationSession) -> list[tuple[float, float]]:
+    points: list[tuple[float, float]] = []
+    for route in session.routes[:3]:
+        coords = route.geometry.get("coordinates") or []
+        if not coords:
+            continue
+        for index in {0, len(coords) // 2, len(coords) - 1}:
+            try:
+                lon, lat = coords[index][:2]
+                points.append((float(lat), float(lon)))
+            except (TypeError, ValueError, IndexError):
+                continue
+    return points
 
 
 # --- tools -------------------------------------------------------------------
@@ -214,26 +286,6 @@ async def geocode(session: EvacuationSession, query: str | None = None) -> dict[
     q = (query or session.query or "").strip()
     if not q:
         return {"error": "no location given"}
-
-    # The UI submits the exact coordinates returned by its governed Mapbox
-    # autocomplete request. Reusing that selected result prevents a model-initiated
-    # geocode call from discarding a valid location when the upstream DNS/API is
-    # temporarily unavailable between selection and planning.
-    existing_record = session.place.record if session.place else None
-    if (
-        session.place is not None
-        and existing_record is not None
-        and existing_record.payload.get("input_method") == "autocomplete_selection"
-        and q.casefold() == session.query.strip().casefold()
-    ):
-        return {
-            "lat": session.place.lat,
-            "lon": session.place.lon,
-            "label": session.place.label,
-            "source": existing_record.source_id.value,
-            "data_class": existing_record.data_class,
-            "reused": True,
-        }
 
     # Keep the authored demo internally consistent: its closure geometry and
     # captured route alternatives were built from the replayed Rifle Club
@@ -321,10 +373,16 @@ async def get_active_incidents(
     if session.place is None:
         return {"error": "location unknown"}
 
-    incidents, ires, pres = await wfigs.get_active_incidents(
-        session.place.lat, session.place.lon, radius_km=radius_km
+    (incidents, ires, pres), (hotspots, hres) = await asyncio.gather(
+        wfigs.get_active_incidents(
+            session.place.lat, session.place.lon, radius_km=radius_km
+        ),
+        firms.get_hotspots(
+            session.place.lat, session.place.lon, radius_km=radius_km
+        ),
     )
     session.incidents = incidents
+    session.fire_hotspots = hotspots
 
     # Report the worse of the two layers: a missing perimeter layer materially
     # weakens route validation even when the point layer succeeded.
@@ -337,6 +395,43 @@ async def get_active_incidents(
             _stale_count([i.record for i in incidents]),
         )
     )
+    session.record_source(
+        _status(
+            SourceId.FIRMS,
+            hres,
+            len(hotspots),
+            _stale_count([hotspot.record for hotspot in hotspots]),
+        )
+    )
+
+    detections = []
+    for hotspot in hotspots[:20]:
+        associated, association_distance = firms.nearest_incident(hotspot, incidents)
+        detections.append(
+            {
+                "hotspot_id": hotspot.hotspot_id,
+                "lat": hotspot.lat,
+                "lon": hotspot.lon,
+                "distance_km": (
+                    round(hotspot.distance_km, 1)
+                    if hotspot.distance_km is not None
+                    else None
+                ),
+                "acquired_at": hotspot.acquired_at.isoformat().replace("+00:00", "Z"),
+                "satellite": hotspot.satellite,
+                "instrument": hotspot.instrument,
+                "confidence": hotspot.confidence,
+                "fire_radiative_power_mw": hotspot.fire_radiative_power_mw,
+                "stale": hotspot.record.stale,
+                "source": SourceId.FIRMS.value,
+                "associated_incident": associated.name if associated else None,
+                "association_distance_km": (
+                    round(association_distance, 1)
+                    if association_distance is not None
+                    else None
+                ),
+            }
+        )
 
     return {
         "count": len(incidents),
@@ -353,7 +448,17 @@ async def get_active_incidents(
             }
             for i in incidents[:8]
         ],
-        "note": "Containment percentage is not a statement about route safety.",
+        "satellite_detection_count": len(hotspots),
+        "satellite_detections": detections,
+        "source_outcomes": {
+            SourceId.WFIGS.value: worse.outcome.value,
+            SourceId.FIRMS.value: hres.outcome.value,
+        },
+        "note": (
+            "Containment percentage is not a statement about route safety. "
+            "FIRMS thermal detections are independent point evidence, not "
+            "official incidents, evacuation orders, or fire perimeters."
+        ),
     }
 
 
@@ -362,6 +467,12 @@ async def find_shelters(session: EvacuationSession) -> dict[str, Any]:
         return {"error": "location unknown"}
 
     lat, lon = session.place.lat, session.place.lon
+
+    # Destination safety must be known before routing. Load the authoritative
+    # zone and perimeter layers here if the model has not already done so.
+    checked = {status.source_id for status in session.sources}
+    if SourceId.SREC not in checked or SourceId.WFIGS not in checked:
+        await get_evacuation_status(session)
 
     # Activated evacuation shelters first; the standing facility list is the
     # fallback and is explicitly not the same thing.
@@ -380,17 +491,42 @@ async def find_shelters(session: EvacuationSession) -> dict[str, Any]:
         _status(SourceId.SREC, pres, len(candidates), _stale_count([s.record for s in candidates]))
     )
 
-    eligible, rejected = filter_shelters(candidates, session.needs)
+    eligible, rejected = filter_shelters(
+        candidates,
+        session.needs,
+        zones=session.zones,
+        incidents=session.incidents,
+    )
+    if session.needs.medical and eligible:
+        await _load_air_quality(
+            session, [(shelter.lat, shelter.lon) for shelter in eligible[:5]]
+        )
+        for shelter in eligible:
+            shelter.air_quality = assess_shelter_air_quality(
+                shelter,
+                session.air_quality_readings,
+                station_radius_km=settings.air_quality_station_radius_km,
+            )
+        eligible, rejected = filter_shelters(
+            candidates,
+            session.needs,
+            zones=session.zones,
+            incidents=session.incidents,
+        )
     session.rejected_shelters = rejected
-    if eligible:
-        session.destination = eligible[0]
+    session.destination = eligible[0] if eligible else None
 
     return {
         "needs_applied": session.needs.hard_constraints,
         "preferred_shelter": _shelter_dict(eligible[0]) if eligible else None,
         "alternatives": [_shelter_dict(s) for s in eligible[1:3]],
         "rejected": [
-            {"name": s.name, "distance_km": round(s.distance_km or 0, 1), "missing": u}
+            {
+                "name": s.name,
+                "distance_km": round(s.distance_km or 0, 1),
+                "reasons": u,
+                "missing": [reason for reason in u if not reason.startswith("hazard:")],
+            }
             for s, u in rejected[:5]
         ],
         "used_standing_facility_list": used_fallback,
@@ -415,6 +551,7 @@ def _shelter_dict(s: Shelter) -> dict[str, Any]:
         "accepts": s.capabilities,
         "capacity_status": s.capacity_status or "not published",
         "capacity_known": s.capacity_known,
+        "air_quality": s.air_quality.model_dump(mode="json") if s.air_quality else None,
         "updated_at": s.record.as_of,
     }
 
@@ -464,19 +601,48 @@ async def plan_safe_route(
     if not session.shelters:
         await find_shelters(session)
 
+    eligible, rejected = filter_shelters(
+        session.shelters,
+        session.needs,
+        zones=session.zones,
+        incidents=session.incidents,
+    )
+    session.rejected_shelters = rejected
+    eligible_by_id = {shelter.shelter_id: shelter for shelter in eligible}
+
     target = None
     if shelter_id:
-        target = next((s for s in session.shelters if s.shelter_id == shelter_id), None)
+        target = eligible_by_id.get(shelter_id)
+        if target is None:
+            requested = next(
+                (shelter for shelter in session.shelters if shelter.shelter_id == shelter_id),
+                None,
+            )
+            reasons = next(
+                (why for shelter, why in rejected if shelter.shelter_id == shelter_id),
+                ["shelter was not found"],
+            )
+            return {
+                "error": (
+                    f"{requested.name if requested else shelter_id} is not an eligible "
+                    f"evacuation destination: {'; '.join(reasons)}"
+                ),
+                "candidates": [],
+                "routing_skipped": True,
+            }
+    if target is None and session.destination is not None:
+        target = eligible_by_id.get(session.destination.shelter_id)
     if target is None:
-        target = session.destination
-    if target is None:
-        eligible, _ = filter_shelters(session.shelters, session.needs)
         target = eligible[0] if eligible else None
     if target is None:
+        session.destination = None
         return {
-            "error": "no shelter meets this household's hard requirements, so there "
-            "is nowhere safe to route to",
+            "error": (
+                "no shelter outside the Level 3 and mapped fire hazard areas "
+                "meets this household's hard requirements, so routing was skipped"
+            ),
             "candidates": [],
+            "routing_skipped": True,
         }
 
     session.destination = target
@@ -530,6 +696,7 @@ async def validate_route(session: EvacuationSession) -> dict[str, Any]:
         await get_closures(session)
     if not session.incidents:
         await get_active_incidents(session)
+    await _load_air_quality(session, _route_aq_points(session))
 
     ctx = _ctx(session)
     approved, rejected = validate_all(ctx)
@@ -558,12 +725,15 @@ async def validate_route(session: EvacuationSession) -> dict[str, Any]:
                     round(r.hazard_margin_km, 2) if r.hazard_margin_km is not None else None
                 ),
                 "intersects": r.intersects,
+                "air_quality": r.air_quality.model_dump(mode="json"),
+                "air_quality_warning": r.air_quality_warning,
             }
             for r in session.routes
         ],
         "freshness_summary": (
             f"{len(session.closures)} closure records, "
             f"{len(session.incidents)} incident records"
+            f", {len(session.air_quality_readings)} PM2.5 readings"
         ),
     }
 

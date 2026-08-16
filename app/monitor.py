@@ -33,7 +33,14 @@ class MonitorState:
     """What the monitor compares against, captured at the end of each pass."""
 
     def __init__(self, session: EvacuationSession) -> None:
-        self.level = session.zone.level if session.zone else EvacLevel.UNKNOWN
+        # The consensus can conservatively raise an unzoned location when fire
+        # geometry is close. Watching only the raw SREC zone would miss that
+        # escalation, especially before a route has been selected.
+        self.level = (
+            session.consensus.level
+            if session.consensus is not None
+            else (session.zone.level if session.zone else EvacLevel.UNKNOWN)
+        )
         self.closure_ids = {c.closure_id for c in session.closures if c.is_hard_closure}
         self.route_id = session.current_route.route_id if session.current_route else None
         self.incident_names = {i.name for i in session.incidents}
@@ -60,7 +67,22 @@ async def run_once(session: EvacuationSession) -> dict[str, Any] | None:
     level_changed = after.level is not before.level
     new_incidents = after.incident_names - before.incident_names
 
-    if not (new_closures or level_changed or new_incidents):
+    # Revalidate the selected route on every refresh, even when the identifiers
+    # above are unchanged. Fire perimeters grow under the same incident name,
+    # and authorities can revise the geometry of an existing closure without
+    # assigning it a new ID. Treating identifiers as the whole hazard state
+    # would leave an already-selected route approved after the hazard moved
+    # across it.
+    route_check: dict[str, Any] | None = None
+    route_invalidated = False
+    if session.routes and before.route_id is not None:
+        route_check = await tools.validate_route(session)
+        route_invalidated = not (
+            session.current_route is not None
+            and session.current_route.route_id == before.route_id
+        )
+
+    if not (new_closures or level_changed or new_incidents or route_invalidated):
         # No-change rule. Record the heartbeat, raise nothing.
         return None
 
@@ -78,6 +100,8 @@ async def run_once(session: EvacuationSession) -> dict[str, Any] | None:
         changes.append(f"evacuation level changed to {after.level.label}")
     for name in new_incidents:
         changes.append(f"new incident nearby: {name}")
+    if route_invalidated and not (new_closures or level_changed or new_incidents):
+        changes.append("updated hazard geometry now intersects the selected route")
 
     session.step(
         StepKind.MONITOR,
@@ -100,7 +124,7 @@ async def run_once(session: EvacuationSession) -> dict[str, Any] | None:
     # Does the change actually touch our plan? Revalidate before assuming so —
     # a closure on the other side of the county is news, not a reroute.
     if session.routes:
-        result = await tools.validate_route(session)
+        result = route_check or await tools.validate_route(session)
         still_valid = (
             session.current_route is not None
             and before.route_id is not None

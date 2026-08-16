@@ -22,6 +22,7 @@ scenario; `app/sources/*` never sees `_meta`, and the UI shows it.
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -39,19 +40,6 @@ MANIFEST = FIXTURE_DIR / "manifest.json"
 # itself that its route died. That keeps the replan a real recalculation on the
 # same code path that live data would exercise.
 _phase: str = "before"
-
-# Captured demo addresses let the replay remain testable when an external
-# geocoder is unavailable. These are location inputs only; they do not bypass
-# hazard lookup, shelter filtering, route generation or route validation.
-_DEMO_LOCATIONS: tuple[dict[str, Any], ...] = (
-    {
-        "id": "replay:address:8414-n-molly",
-        "label": "8414 North Molly Street, Spokane, Washington 99208, United States",
-        "lat": 47.734881,
-        "lon": -117.470206,
-        "source": "REPLAY",
-    },
-)
 
 
 def set_phase(phase: str) -> None:
@@ -108,19 +96,6 @@ def is_scenario_query(query: str) -> bool:
     return "rifle club" in normalized
 
 
-def demo_location_suggestions(query: str, *, limit: int = 5) -> list[dict[str, Any]]:
-    """Captured addresses matching every typed term, for replay-mode demos."""
-    terms = " ".join((query or "").lower().replace(",", " ").split()).split()
-    if not terms:
-        return []
-    matches = []
-    for place in _DEMO_LOCATIONS:
-        haystack = " ".join(place["label"].lower().replace(",", " ").split())
-        if all(term in haystack for term in terms):
-            matches.append(dict(place))
-    return matches[: max(1, min(limit, 5))]
-
-
 def clear_cache() -> None:
     _manifest.cache_clear()
     _load.cache_clear()
@@ -150,7 +125,7 @@ def lookup(url: str) -> EgressResult | None:
         if body is None:
             continue
 
-        payload = _strip_meta(body)
+        payload = _strip_meta(_materialize(body))
         return EgressResult(
             outcome=Outcome.REPLAY,
             url=url,
@@ -161,6 +136,21 @@ def lookup(url: str) -> EgressResult | None:
         )
 
     return None
+
+
+def _materialize(body: str) -> str:
+    """Resolve explicit clock placeholders in authored environmental fixtures.
+
+    The replay demonstrates freshness handling, not a permanently current
+    measurement. Rebasing happens here at the egress boundary so source parsers
+    still receive the exact formats their live APIs publish.
+    """
+    now = datetime.now(timezone.utc)
+    return (
+        body.replace("__REPLAY_NOW_ISO__", now.isoformat().replace("+00:00", "Z"))
+        .replace("__REPLAY_TODAY__", now.strftime("%Y-%m-%d"))
+        .replace("__REPLAY_HHMM__", now.strftime("%H%M"))
+    )
 
 
 def _strip_meta(body: str) -> str:

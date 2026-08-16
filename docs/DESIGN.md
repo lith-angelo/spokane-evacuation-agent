@@ -39,11 +39,13 @@ This design replaces three things in it:
 |---|---|
 | Replay snapshots baked into the repo | Live public APIs, fetched at request time; replay kept as an explicit mode |
 | Network access unconstrained by anything but code | Egress enumerated in policy and enforced by OpenShell outside the agent's reach |
-| DeepSeek / remote key | Local NIM (`nvidia/Qwen3.6-35B-A3B-NVFP4`) over an OpenAI-compatible endpoint |
+| DeepSeek / remote key | Local NIM (`nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4`) over an OpenAI-compatible endpoint |
 
-Two things carry over unchanged, because they were the previous build's real
-contribution: the **provenance envelope** on every record and the
-**deterministic safety guard** that owns the final verdict.
+Two design lessons were reimplemented during the event: a **provenance
+envelope** on every record and a **deterministic safety guard** that owns the
+final verdict. The earlier branch is disclosed for transparency; it was not
+merged into this submission branch, and no runnable file or Git blob was copied
+from it.
 
 ## 2. Principles
 
@@ -62,10 +64,6 @@ contribution: the **provenance envelope** on every record and the
    process when on.
 5. **Snapshots, not overwrites.** Each fetch is archived. Conflicts between
    sources are shown, and the conservative reading wins.
-6. **Resolve an address once.** Autocomplete returns a label and coordinates;
-   the browser submits that selected result with the plan. The backend checks
-   the Spokane service boundary and reuses it instead of making a second,
-   independently fallible geocoder request.
 
 ## 3. Runtime topology
 
@@ -73,7 +71,8 @@ contribution: the **provenance envelope** on every record and the
 browser (web/, static SPA)
         │  HTTP + SSE
         ▼
-FastAPI  app/main.py  ──────────────► app/agent.py ── OpenAI-compatible ──► local NIM
+NemoClaw/OpenShell sandbox
+  FastAPI app/main.py ──────────────► app/agent.py ── OpenAI-compatible ──► local NIM
   /api/plan  /api/stream  /api/health        │            (EVAC_INFERENCE_BASE_URL)
                                              │ tool calls
                                              ▼
@@ -82,37 +81,41 @@ FastAPI  app/main.py  ──────────────► app/agent.py
                         ┌────────────────────┼────────────────────┐
                         ▼                    ▼                    ▼
                   app/sources/*        app/geo.py           app/safety.py
-                        │            (shapely, ownsdeterministic
+                        │            (shapely; owns       (owns deterministic
                         │             point-in-polygon)    final verdict)
                         ▼
                    app/egress.py   ← the only module that touches the network
                         │
-             nemoclaw <sandbox> exec -- curl …
+                 direct child curl
                         │
                  OpenShell L7 proxy   ← enforces policies/spokane-evac.yaml
                         │
-        services3.arcgis.com · protect.genasys.com · data.wsdot.wa.gov
-        nominatim.openstreetmap.org · router.project-osrm.org · api.mapbox.com
+        services3.arcgis.com · data.wsdot.wa.gov · api.openaq.org
+        firms.modaps.eosdis.nasa.gov · nominatim.openstreetmap.org
+        router.project-osrm.org · api.mapbox.com
 ```
 
-The FastAPI process runs on the host; its outbound calls are funnelled through
-the sandbox so that the sandbox's policy governs them. This is deliberate: it
-means the demo's egress story is enforced by something the agent cannot edit.
+The submitted FastAPI process, its direct-child `curl` egress calls, and its
+mutable state all run inside the `my-assistant` NemoClaw/OpenShell sandbox. A
+localhost-only OpenShell forward exposes port 8811 to Tailscale. Host execution
+remains a labelled development option, not the submitted deployment.
 
 ## 4. Module map
 
-Everything under `app/` except `config.py` is still to be written.
+The runtime is implemented in these modules:
 
 | Module | Responsibility | Notes |
 |---|---|---|
 | `config.py` | Settings from env, `ALLOWED_HOSTS` mirror | **Done** |
-| `egress.py` | The only network path. Builds `nemoclaw exec -- curl` invocations, bounded by `EVAC_EGRESS_CONCURRENCY`, classifies every outcome | See §6 |
+| `egress.py` | The only network path. Runs direct-child `curl` inside the sandbox (or `nemoclaw exec -- curl` in labelled host development), bounded by `EVAC_EGRESS_CONCURRENCY`, and classifies every outcome | See §6 |
 | `models.py` | Pydantic records + the provenance envelope | See §5 |
 | `sources/wfigs.py` | NIFC incident locations + perimeters | `services3.arcgis.com/T4QMspbfLg3qTGWY/...` |
-| `sources/genasys.py` | Evacuation zones and Level 1/2/3 | `protect.genasys.com/api/**` |
+| `sources/srec.py` | Evacuation zones, facilities, and local closures | Spokane Regional Emergency Communications |
 | `sources/wsdot.py` | State highway closures and alerts | `data.wsdot.wa.gov/arcgis/rest/**` |
 | `sources/nominatim.py` | Landmark/address → coordinates | 1 req/s, identifying User-Agent required |
 | `sources/osrm.py` | Candidate routes with alternatives | Demo server, no SLA |
+| `sources/openaq.py` | Internal PM2.5 enrichment for routes and shelters | Not exposed as a model tool |
+| `sources/firms.py` | NASA FIRMS VIIRS thermal detections | Point evidence; never a perimeter or order |
 | `sources/firecam.py` | **Deliberately blocked.** `cameras.alertwildfire.org` is absent from the policy | See §8 |
 | `geo.py` | Point-in-polygon, buffers, distance, closure intersection | shapely |
 | `safety.py` | Hard gates; owns the final resident-facing verdict | See §7 |
@@ -133,7 +136,7 @@ Every record that can influence a safety decision is wrapped:
 ```json
 {
   "record_id": "wfigs:2026-WANES-001845:perimeter",
-  "source_id": "WFIGS | GENASYS | SPOKANE_GIS | WSDOT | NOMINATIM | OSRM",
+  "source_id": "WFIGS | SREC | WSDOT | NOMINATIM | OSRM | MAPBOX | OPENAQ | FIRMS",
   "data_class": "official | derived | replay | synthetic",
   "authority_tier": 1,
   "observed_at": "2026-08-15T06:12:00Z",
@@ -190,6 +193,23 @@ be captured but not parsed as data.
 Concurrency is capped at `EVAC_EGRESS_CONCURRENCY` (default 8) because each call
 is a subprocess, and Nominatim additionally gets a 1 req/s serial lane.
 
+### 6.1 Enforcement ownership
+
+The product uses several boundaries, but they are not all OpenShell policy
+concepts. The distinction is part of the security claim:
+
+| Scope | Enforcement owner | Current claim |
+|---|---|---|
+| Network scope | OpenShell L7 proxy | Enforced by host, port, method, path and calling-binary rules in `policies/spokane-evac.yaml`. |
+| Filesystem/data-path scope | OpenShell Landlock filesystem policy | OpenShell confines declared paths, but this build does not claim per-session data-store separation. Such a claim requires distinct filesystem paths and a sandbox policy that grants only those paths. |
+| Tool scope | Application layer inside the OpenShell boundary | The tool registry and deterministic orchestration decide which capabilities the model may invoke. OpenShell does not understand tool names. |
+| Action/recipient scope | Application layer inside the OpenShell boundary | `send_notification` checks the session's approved contacts. OpenShell does not understand conversational approval. |
+
+The live blocked-action demonstration uses the first row: a real request to an
+unapproved host is refused by OpenShell. The unapproved-recipient demonstration
+is separately labelled as application authorization; successful delivery is
+simulated in this prototype.
+
 ## 7. Safety rules
 
 `app/safety.py` runs after the tools and before anything reaches the resident.
@@ -212,6 +232,11 @@ Any gate failing zeroes the recommendation and forces the conservative branch.
    road.
 6. **Coverage honesty.** If a source was denied, errored, or returned empty, the
    answer states which layer is missing and what that means.
+7. **Air quality is evidence, not an invented all-clear.** `validate_route`
+   attaches `checked`, `max_pm25`, `unhealthy_segment`, `source`, and
+   `updated_at`. A fresh elevated value adds a ranking penalty and warning;
+   above 35.5 µg/m³ it rejects the route only for a household with medical
+   needs. Missing or older-than-two-hour readings remain unavailable, never 0.
 
 The model may phrase these; it may not overturn them. The step trace labels each
 step `model` or `safety guard`, as the previous MVP did.
@@ -226,7 +251,7 @@ blocked action with the host and the policy reason.
 
 This matters because the alternative demo — a fake tool that pretends to be
 blocked — proves nothing. Here the enforcement is external to the agent, and the
-same mechanism is what keeps the other six hosts to GET/HEAD.
+same mechanism is what keeps every approved host read-only and path-scoped.
 
 ## 9. Open decisions — all resolved
 
@@ -240,7 +265,8 @@ Each was a real fork. What the M0 probing actually found is in
 | 3 | Narrow the Genasys `/api/**` grant | Moot; the host is gone from the allowlist. |
 | 4 | OSRM has no SLA and no closure knowledge | Confirmed. Closures are applied as a post-filter in `safety.validate_route`. A rejected route is an honest outcome. |
 | 5 | Live vs. replay default | **Replay**, with a live toggle. See DEMO.md for why both are worth showing. |
-| 6 | Weather/AQI | Out of scope. Not in the allowlist, not claimed in the UI. |
+| 6 | Air quality | **OpenAQ v3.** Internal enhancement to route validation and medical shelter ranking; two-hour freshness window. |
+| 7 | Live fire detection | **NASA FIRMS VIIRS NRT.** Independent thermal point evidence alongside WFIGS, never promoted to an official incident or perimeter. |
 
 The original text of each follows.
 
@@ -263,9 +289,13 @@ The original text of each follows.
 5. **Live vs. replay default.** `.env.example` ships `replay`. Live is the point
    of this rewrite; replay is the safety net if the venue network or an upstream
    is down. Decide which the demo opens in.
-6. **No weather/AQI in the policy.** NWS and AirNow were Tier-1/2 in the
-   research but are absent from the allowlist. Either add them or state that
-   weather context is out of scope for this build.
+6. **Air quality.** OpenAQ v3 is allowlisted at `api.openaq.org`. PM2.5 is
+   fetched internally by existing route/shelter tools; there is deliberately no
+   new model-callable AQ tool. The free API key is injected by OpenShell.
+7. **Live fire detection.** NASA FIRMS is allowlisted at
+   `firms.modaps.eosdis.nasa.gov`. Its free MAP key is injected in the request
+   path and redacted before persistence. Detections supplement WFIGS but do not
+   carry evacuation or perimeter authority.
 
 ## 10. Non-goals
 

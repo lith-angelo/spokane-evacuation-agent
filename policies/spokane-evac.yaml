@@ -17,7 +17,7 @@
 
 preset:
   name: spokane-evac
-  description: "Read-only wildfire, evacuation-zone, traffic, geocoding, and routing APIs for the Spokane evacuation agent"
+  description: "Read-only wildfire, evacuation-zone, traffic, environmental, geocoding, and routing APIs for the Spokane evacuation agent"
 
 network_policies:
   spokane_evac:
@@ -84,6 +84,25 @@ network_policies:
         rules:
           - allow: { method: GET, path: "/search/geocode/v6/**" }
           - allow: { method: HEAD, path: "/search/geocode/v6/**" }
+
+      # OpenAQ v3 PM2.5 measurements. The API key is supplied through an
+      # OpenShell generic provider as X-API-Key; the process sees a placeholder.
+      - host: api.openaq.org
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/v3/locations" }
+          - allow: { method: GET, path: "/v3/locations/**" }
+
+      # NASA FIRMS near-real-time VIIRS thermal detections. The free MAP key is
+      # resolved by OpenShell in the path and is redacted before persistence.
+      - host: firms.modaps.eosdis.nasa.gov
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/api/area/csv/**" }
 
     # Verified present in this sandbox image. python3 uses a glob because the
     # enforcer reports the resolved interpreter path (/usr/bin/python3.13).

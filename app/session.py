@@ -16,11 +16,13 @@ from typing import Any
 
 from app import store
 from app.models import (
+    AirQualityReading,
     BlockedAction,
     Closure,
     Consensus,
     EvacLevel,
     EvacZone,
+    FireHotspot,
     HouseholdNeeds,
     Incident,
     Place,
@@ -50,6 +52,8 @@ class EvacuationSession:
     zone: EvacZone | None = None
     zones: list[EvacZone] = field(default_factory=list)
     incidents: list[Incident] = field(default_factory=list)
+    fire_hotspots: list[FireHotspot] = field(default_factory=list)
+    air_quality_readings: list[AirQualityReading] = field(default_factory=list)
     shelters: list[Shelter] = field(default_factory=list)
     rejected_shelters: list[tuple[Shelter, list[str]]] = field(default_factory=list)
     closures: list[Closure] = field(default_factory=list)
@@ -172,6 +176,10 @@ class EvacuationSession:
             "zone": self.zone.model_dump(mode="json") if self.zone else None,
             "zones": [z.model_dump(mode="json") for z in self.zones],
             "incidents": [i.model_dump(mode="json") for i in self.incidents],
+            "fire_hotspots": [h.model_dump(mode="json") for h in self.fire_hotspots],
+            "air_quality_readings": [
+                reading.model_dump(mode="json") for reading in self.air_quality_readings
+            ],
             "shelters": [s.model_dump(mode="json") for s in self.shelters],
             "rejected_shelters": [
                 {"shelter": s.model_dump(mode="json"), "unmet": u}

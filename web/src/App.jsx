@@ -21,6 +21,78 @@ const NEED_LABELS = {
   medical: 'Medical needs',
 }
 
+const SOURCE_META = {
+  MAPBOX: { label: 'Location found', provider: 'Mapbox' },
+  NOMINATIM: { label: 'Location found', provider: 'OpenStreetMap Nominatim' },
+  WFIGS: { label: 'Official fire incidents', provider: 'NIFC WFIGS' },
+  FIRMS: { label: 'Satellite heat detections', provider: 'NASA FIRMS' },
+  SREC: { label: 'Local emergency information', provider: 'Spokane Regional Emergency Communications' },
+  WSDOT: { label: 'State road alerts', provider: 'Washington State DOT' },
+  WSDOT_EOC: { label: 'Emergency traffic cross-check', provider: 'WSDOT EOC' },
+  OSRM: { label: 'Route calculation', provider: 'OSRM' },
+  OPENAQ: { label: 'Air quality', provider: 'OpenAQ' },
+  FIRECAM: { label: 'Fire camera', provider: 'ALERTWildfire' },
+}
+
+const OUTCOME_LABELS = {
+  OK: 'LIVE',
+  REPLAY: 'DEMO DATA',
+  POLICY_DENIED: 'BLOCKED',
+  UPSTREAM_ERROR: 'UNAVAILABLE',
+  SANDBOX_UNAVAILABLE: 'SANDBOX OFFLINE',
+}
+
+function sourceSummary(source) {
+  const count = Number(source.record_count || 0)
+  const stale = Number(source.stale_count || 0)
+  const fresh = Math.max(0, count - stale)
+
+  if (source.outcome === 'POLICY_DENIED') {
+    return 'OpenShell blocked this source because it is outside the approved network policy.'
+  }
+  if (source.outcome === 'SANDBOX_UNAVAILABLE') {
+    return 'The protected network boundary is unavailable, so this source was not checked.'
+  }
+  if (source.outcome === 'UPSTREAM_ERROR') {
+    if (source.source_id === 'WSDOT_EOC') {
+      return 'The secondary emergency-traffic check failed. Primary state road alerts may still be available.'
+    }
+    return 'The provider could not be reached, so its information is currently unavailable.'
+  }
+
+  switch (source.source_id) {
+    case 'MAPBOX':
+    case 'NOMINATIM':
+      return count ? 'Your address was matched to a map location.' : 'Your address could not be matched.'
+    case 'WFIGS':
+      if (!count) return 'No official fire incident records were found nearby.'
+      if (!fresh) return `${count} nearby fire incident records were found, but all are too old to treat as current.`
+      return `${fresh} current fire incident ${fresh === 1 ? 'record was' : 'records were'} found nearby${stale ? `; ${stale} older ${stale === 1 ? 'record is' : 'records are'} shown for context` : ''}.`
+    case 'FIRMS':
+      if (!fresh) return 'No recent satellite heat detections were found nearby.'
+      return `${fresh} recent satellite heat ${fresh === 1 ? 'detection was' : 'detections were'} found nearby.`
+    case 'SREC':
+      if (!count) return 'No matching local evacuation, shelter, or emergency-facility records were returned.'
+      return `${count} local emergency records were checked for evacuation zones and suitable destinations.`
+    case 'WSDOT':
+      if (!count) return 'No matching state road alerts or closures were found nearby.'
+      return `${count} state road ${count === 1 ? 'alert was' : 'alerts were'} checked for closures affecting the route.`
+    case 'WSDOT_EOC':
+      if (!count) return 'No additional emergency traffic events were found.'
+      return `${count} emergency traffic ${count === 1 ? 'event was' : 'events were'} used as a secondary check.`
+    case 'OSRM':
+      if (!count) return 'No road route could be calculated.'
+      return `${count} road-route ${count === 1 ? 'option was' : 'options were'} calculated.`
+    case 'OPENAQ':
+      if (!fresh) return 'No nearby PM2.5 reading was fresh enough to use.'
+      return `${fresh} current PM2.5 ${fresh === 1 ? 'reading was' : 'readings were'} available${stale ? `; ${stale} older ${stale === 1 ? 'reading was' : 'readings were'} ignored` : ''}.`
+    default:
+      return count
+        ? `${count} matching ${count === 1 ? 'record was' : 'records were'} returned.`
+        : 'The source was checked and returned no matching records.'
+  }
+}
+
 async function api(path, options = {}) {
   const res = await fetch(path, {
     headers: { 'Content-Type': 'application/json' },
@@ -39,7 +111,6 @@ export default function App() {
   const [health, setHealth] = useState(null)
   const [query, setQuery] = useState(PRESET.query)
   const [locationResolved, setLocationResolved] = useState(true)
-  const [selectedLocation, setSelectedLocation] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [geocodeStatus, setGeocodeStatus] = useState('')
   const skipGeocode = useRef(false)
@@ -93,7 +164,6 @@ export default function App() {
   const chooseLocation = (place) => {
     skipGeocode.current = true
     setQuery(place.label)
-    setSelectedLocation(place)
     setLocationResolved(true)
     setSuggestions([])
     setGeocodeStatus('')
@@ -141,14 +211,6 @@ export default function App() {
           needs,
           approved_contacts: PRESET.approved_contacts,
           session_id: state?.session_id,
-          location: selectedLocation
-            ? {
-                lat: selectedLocation.lat,
-                lon: selectedLocation.lon,
-                label: selectedLocation.label,
-                source: selectedLocation.source || 'MAPBOX',
-              }
-            : null,
         }),
       })
       setState(result)
@@ -270,9 +332,7 @@ export default function App() {
                   value={query}
                   onChange={(e) => {
                     setQuery(e.target.value)
-                    setSelectedLocation(null)
                     setLocationResolved(false)
-                    setState(null)
                   }}
                   onKeyDown={(e) => e.key === 'Enter' && !busy && query.trim() && run()}
                   placeholder="e.g. Rifle Club Road, Spokane County"
@@ -471,6 +531,11 @@ export default function App() {
                           </span>
                         ))}
                       </div>
+                      {state.destination.air_quality?.status === 'available' && (
+                        <div className="meta">
+                          PM2.5 {state.destination.air_quality.max_pm25.toFixed(1)} µg/m³ · OpenAQ
+                        </div>
+                      )}
                     </div>
                   )}
                   {(state.rejected_shelters || []).map(({ shelter, unmet }) => (
@@ -480,13 +545,13 @@ export default function App() {
                         <span className="verdict-tag no">✗ REJECTED</span>
                       </div>
                       <div className="meta">
-                        {shelter.distance_km?.toFixed(1)} km — closer, but does not meet
-                        every requirement
+                        {shelter.distance_km?.toFixed(1)} km — not eligible for this
+                        evacuation
                       </div>
                       <div className="caps">
                         {unmet.map((u) => (
                           <span className="cap missing" key={u}>
-                            missing {u}
+                            {u.startsWith('hazard:') ? u.slice(7).trim() : `missing ${u}`}
                           </span>
                         ))}
                       </div>
@@ -518,7 +583,14 @@ export default function App() {
                         {r.distance_km} km · {Math.round(r.eta_min)} min
                         {r.hazard_margin_km != null &&
                           ` · ${r.hazard_margin_km.toFixed(1)} km hazard margin`}
+                        {r.air_quality?.status === 'available' &&
+                          ` · PM2.5 ${r.air_quality.max_pm25.toFixed(1)} µg/m³`}
                       </div>
+                      {r.air_quality_warning && (
+                        <div className="meta" style={{ color: 'var(--warning)' }}>
+                          {r.air_quality_warning}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {(state.rejected_routes || []).map((r) => (
@@ -530,6 +602,39 @@ export default function App() {
                       <div className="meta">
                         {r.distance_km} km · {Math.round(r.eta_min)} min —{' '}
                         {r.rejection_reason}
+                      </div>
+                      {r.air_quality?.status === 'available' && (
+                        <div className="meta">
+                          PM2.5 {r.air_quality.max_pm25.toFixed(1)} µg/m³ · OpenAQ
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            )}
+
+            {state?.fire_hotspots?.length > 0 && (
+              <Panel
+                key="firms"
+                title="Satellite detections"
+                note="FIRMS points — not incidents or perimeters"
+              >
+                <div>
+                  {state.fire_hotspots.slice(0, 6).map((hotspot) => (
+                    <div className="row" key={hotspot.hotspot_id}>
+                      <div className="row-head">
+                        <span className="name">Thermal detection</span>
+                        <span className={`outcome ${hotspot.record?.stale ? 'o-UPSTREAM_ERROR' : 'o-OK'}`}>
+                          {hotspot.record?.stale ? 'STALE' : 'FRESH'}
+                        </span>
+                      </div>
+                      <div className="meta">
+                        {hotspot.distance_km?.toFixed(1)} km away · {hotspot.instrument || 'sensor'}{' '}
+                        {hotspot.satellite || ''}
+                        {hotspot.fire_radiative_power_mw != null &&
+                          ` · ${hotspot.fire_radiative_power_mw.toFixed(1)} MW`}
+                        <br />FIRMS, observed {new Date(hotspot.acquired_at).toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -567,25 +672,35 @@ export default function App() {
             )}
 
             {state?.sources?.length > 0 && (
-              <Panel key="sources" title="Sources" note="every answer carries its provenance">
+              <Panel key="sources" title="Live evidence" note="what each source says in plain language">
                 <div>
-                  {state.sources.map((s) => (
-                    <div className="src" key={s.source_id}>
-                      <span className="id">{s.source_id}</span>
-                      <span className={`outcome o-${s.outcome}`}>{s.outcome}</span>
-                      <span className="detail">
-                        {s.record_count} rec
-                        {s.stale_count > 0 && `, ${s.stale_count} stale`}
-                        {s.detail ? ` — ${s.detail}` : ''}
-                      </span>
-                    </div>
-                  ))}
+                  {state.sources.map((s) => {
+                    const meta = SOURCE_META[s.source_id] || {
+                      label: s.source_id,
+                      provider: s.source_id,
+                    }
+                    return (
+                      <div className="src" key={s.source_id}>
+                        <div className="src-head">
+                          <span className="id">{meta.label}</span>
+                          <span className={`outcome o-${s.outcome}`}>
+                            {OUTCOME_LABELS[s.outcome] || s.outcome}
+                          </span>
+                        </div>
+                        <div className="summary">{sourceSummary(s)}</div>
+                        <div className="detail">
+                          {meta.provider} · {s.record_count} {s.record_count === 1 ? 'record' : 'records'}
+                          {s.stale_count > 0 && ` · ${s.stale_count} stale`}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </Panel>
             )}
 
             {state && (
-              <Panel key="containment" title="Containment checks">
+              <Panel key="containment" title="Boundary demonstrations">
                 <div className="body" style={{ display: 'grid', gap: 'var(--space-2)' }}>
                   <button
                     className="btn sm block"
@@ -603,10 +718,12 @@ export default function App() {
                     Send the plan to an unapproved recipient
                   </button>
                   <p className="t-caption" style={{ color: 'var(--text-quaternary)', margin: 0 }}>
-                    Both are real capabilities. The first is refused by the OpenShell L7
-                    proxy because its host is absent from{' '}
-                    <code>policies/spokane-evac.yaml</code>; the second by the session's
-                    action scope. Neither refusal is simulated by the agent.
+                    These exercise different enforcement layers. OpenShell's L7 proxy
+                    denies the real camera request because its host is absent from{' '}
+                    <code>policies/spokane-evac.yaml</code>. Application code running
+                    inside the sandbox denies the recipient because this session did not
+                    approve it. The authorization checks are real; successful message
+                    delivery is simulated in this prototype.
                   </p>
                 </div>
               </Panel>

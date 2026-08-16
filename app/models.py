@@ -43,6 +43,8 @@ class SourceId(str, Enum):
     NOMINATIM = "NOMINATIM"
     OSRM = "OSRM"
     MAPBOX = "MAPBOX"
+    OPENAQ = "OPENAQ"
+    FIRMS = "FIRMS"
     FIRECAM = "FIRECAM"
     DERIVED = "DERIVED"
 
@@ -62,6 +64,11 @@ AUTHORITY_TIER: dict[SourceId, int] = {
     SourceId.NOMINATIM: 3,
     SourceId.OSRM: 3,
     SourceId.MAPBOX: 3,
+    # OpenAQ aggregates measurements from underlying monitoring providers, and
+    # FIRMS publishes satellite detections. Both are evidence layers rather
+    # than authorities for evacuation orders or mapped fire perimeters.
+    SourceId.OPENAQ: 2,
+    SourceId.FIRMS: 2,
     SourceId.FIRECAM: 3,
 }
 
@@ -245,6 +252,58 @@ class Incident(BaseModel):
         return f"{self.acres:,.0f} acres ({self.record.as_of})"
 
 
+class AirQualityReading(BaseModel):
+    """One fresh, normalized PM2.5 observation from a monitoring station.
+
+    An unavailable lookup is represented by the absence of readings plus a
+    source status, never by a made-up value of zero.
+    """
+
+    station_id: str
+    station_name: str | None = None
+    lat: float
+    lon: float
+    pm25_ug_m3: float = Field(ge=0)
+    distance_km: float | None = Field(default=None, ge=0)
+    record: Record
+
+    @property
+    def usable(self) -> bool:
+        return not self.record.stale
+
+
+AirQualityStatus = Literal["available", "unavailable", "stale", "source_error"]
+
+
+class AirQualityAssessment(BaseModel):
+    """Compact AQ evidence attached to a route or shelter."""
+
+    checked: bool = False
+    status: AirQualityStatus = "unavailable"
+    max_pm25: float | None = Field(default=None, ge=0)
+    unhealthy_segment: str | None = None
+    source: SourceId | None = None
+    updated_at: datetime | None = None
+    station_count: int = Field(default=0, ge=0)
+    note: str | None = None
+
+
+class FireHotspot(BaseModel):
+    """A satellite thermal detection, never an incident or perimeter by itself."""
+
+    hotspot_id: str
+    lat: float
+    lon: float
+    acquired_at: datetime
+    satellite: str | None = None
+    instrument: str | None = None
+    confidence: str | None = None
+    fire_radiative_power_mw: float | None = Field(default=None, ge=0)
+    brightness_k: float | None = Field(default=None, ge=0)
+    distance_km: float | None = Field(default=None, ge=0)
+    record: Record
+
+
 class Shelter(BaseModel):
     shelter_id: str
     name: str
@@ -257,6 +316,7 @@ class Shelter(BaseModel):
     capacity_status: str | None = None
     capacity_known: bool = False
     facility_type: str | None = None
+    air_quality: AirQualityAssessment | None = None
     record: Record
 
     def unmet(self, needs: HouseholdNeeds) -> list[str]:
@@ -267,6 +327,11 @@ class Shelter(BaseModel):
         fails the filter rather than passing it.
         """
         have = {c.lower() for c in self.capabilities} | {a.lower() for a in self.accepts}
+        # A facility that explicitly accepts pets necessarily admits trained
+        # service animals as well. Keep the implication one-way: silence about
+        # both remains unknown and still fails the hard constraint.
+        if "pets" in have:
+            have.add("service_animal")
         missing = []
         for need in needs.hard_constraints:
             if need not in have:
@@ -300,6 +365,8 @@ class RouteCandidate(BaseModel):
     rejection_reason: str | None = None
     hazard_margin_km: float | None = None
     intersects: list[str] = Field(default_factory=list)
+    air_quality: AirQualityAssessment = Field(default_factory=AirQualityAssessment)
+    air_quality_warning: str | None = None
 
 
 class BlockedAction(BaseModel):

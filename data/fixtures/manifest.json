@@ -3,7 +3,7 @@
   "name": "Rifle Club Fire \u2014 NW Spokane",
   "label": "REPLAY",
   "origin_hint": "Rifle Club Road, Spokane County",
-  "summary": "A wildfire northwest of Spokane pushes a Level 3 across the Rifle Club Road area. Roads, drive times, route geometry, highway alerts and the emergency facility list are real and captured live. The evacuation overlay \u2014 zones, activated shelters and local closures \u2014 is authored, because SREC publishes nothing when no evacuation is running.",
+  "summary": "A wildfire northwest of Spokane pushes a Level 3 across the Rifle Club Road area. Roads, drive times, route geometry, highway alerts and the emergency facility list are real and captured live. The evacuation overlay, OpenAQ reading and FIRMS detection are authored replay evidence and labeled as such; live mode calls the public APIs.",
   "built_for": "Spark Hack Seattle demonstration",
   "phases": {
    "before": "Initial conditions. Driscoll Blvd is closed; the Francis Ave corridor is open.",
@@ -31,6 +31,24 @@
    "match": "T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current",
    "file": "wfigs_perimeters.json",
    "latency_ms": 910
+  },
+  {
+   "host": "api.openaq.org",
+   "match": "api.openaq.org/v3/locations/101/latest",
+   "file": "openaq_latest.json",
+   "latency_ms": 310
+  },
+  {
+   "host": "api.openaq.org",
+   "match": "api.openaq.org/v3/locations",
+   "file": "openaq_locations.json",
+   "latency_ms": 280
+  },
+  {
+   "host": "firms.modaps.eosdis.nasa.gov",
+   "match": "firms.modaps.eosdis.nasa.gov/api/area/csv/",
+   "file": "firms_hotspots.csv",
+   "latency_ms": 460
   },
   {
    "host": "services3.arcgis.com",

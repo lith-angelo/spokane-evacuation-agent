@@ -14,3 +14,12 @@ data/*.sqlite3
 
 web/node_modules/
 web/dist/
+
+# Workstation metadata is never part of the submission.
+.DS_Store
+._*
+
+# Local experiments used during development, but not imported by the runtime
+# or included in the hackathon submission.
+data/training/
+scripts/harvest_fire_growth.py

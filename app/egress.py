@@ -40,11 +40,63 @@ _STATUS_SENTINEL = "\n__EVAC_HTTP__:"
 _SENSITIVE_QUERY_VALUE = re.compile(
     r"([?&](?:access_token|api_key|key|token)=)[^&#]*", re.I
 )
+_FIRMS_PATH_CREDENTIAL = re.compile(
+    r"(https://firms\.modaps\.eosdis\.nasa\.gov/api/"
+    r"(?:area|country)/(?:csv|json|geojson|kml)/)[^/]+",
+    re.I,
+)
+_ALLOWED_REQUEST_HEADERS = frozenset({"accept", "x-api-key"})
 
 
 def _redact_url(url: str) -> str:
     """Return a log/persistence-safe URL without changing the real request."""
-    return _SENSITIVE_QUERY_VALUE.sub(r"\1[REDACTED]", url)
+    safe = _SENSITIVE_QUERY_VALUE.sub(r"\1[REDACTED]", url)
+    return _FIRMS_PATH_CREDENTIAL.sub(r"\1[REDACTED]", safe)
+
+
+def _validated_headers(headers: dict[str, str] | None) -> list[tuple[str, str]]:
+    """Allow only source-owned, non-routing request headers.
+
+    Tool/model arguments never reach this function. Keeping a short allowlist
+    also prevents a future adapter from overriding Host, proxy, or forwarding
+    headers that participate in the sandbox boundary.
+    """
+    out: list[tuple[str, str]] = []
+    for raw_name, raw_value in (headers or {}).items():
+        name = str(raw_name).strip()
+        value = str(raw_value).strip()
+        if name.lower() not in _ALLOWED_REQUEST_HEADERS:
+            raise ValueError(f"request header {name!r} is not allowed")
+        if not name or "\r" in name or "\n" in name or "\r" in value or "\n" in value:
+            raise ValueError("request headers may not contain control lines")
+        out.append((name, value))
+    return out
+
+
+def _curl_args(
+    url: str,
+    *,
+    method: str,
+    timeout: float,
+    headers: dict[str, str] | None = None,
+) -> list[str]:
+    """Build curl argv without logging or persisting header values."""
+    argv = [
+        "curl",
+        "-sS",
+        "-m",
+        str(int(timeout)),
+        "-A",
+        settings.user_agent,
+        "-X",
+        method,
+        "-w",
+        f"{_STATUS_SENTINEL}%{{http_code}}",
+    ]
+    for name, value in _validated_headers(headers):
+        argv.extend(["-H", f"{name}: {value}"])
+    argv.append(url)
+    return argv
 
 
 class Outcome(str, Enum):
@@ -146,6 +198,7 @@ class Egress:
         url: str,
         *,
         params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         method: str = "GET",
         timeout: float = 30.0,
         policy_probe: bool = False,
@@ -206,31 +259,28 @@ class Egress:
                 if wait > 0:
                     await asyncio.sleep(wait)
                 try:
-                    return await self._dispatch(url, host, path, method, timeout)
+                    return await self._dispatch(
+                        url, host, path, method, timeout, headers=headers
+                    )
                 finally:
                     self._nominatim_last = time.monotonic()
 
         async with self._sem:
-            return await self._dispatch(url, host, path, method, timeout)
+            return await self._dispatch(url, host, path, method, timeout, headers=headers)
 
     async def _dispatch(
-        self, url: str, host: str, path: str, method: str, timeout: float
+        self,
+        url: str,
+        host: str,
+        path: str,
+        method: str,
+        timeout: float,
+        *,
+        headers: dict[str, str] | None = None,
     ) -> EgressResult:
         started = time.monotonic()
 
-        curl = [
-            "curl",
-            "-sS",
-            "-m",
-            str(int(timeout)),
-            "-A",
-            settings.user_agent,
-            "-X",
-            method,
-            "-w",
-            f"{_STATUS_SENTINEL}%{{http_code}}",
-            url,
-        ]
+        curl = _curl_args(url, method=method, timeout=timeout, headers=headers)
 
         if settings.inside_openshell:
             # The complete harness is already executing inside the OpenShell

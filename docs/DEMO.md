@@ -18,7 +18,7 @@ Check the three chips in the header before you speak:
 
 - `● REPLAY` or `● LIVE` — which data the agent is reading
 - `OpenShell enforcing` — the containment moment will be real
-- `Qwen3.6-35B-A3B-NVFP4` — the local NIM is answering
+- `NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4` — the local NIM is answering
 
 If `OpenShell enforcing` is red, the policy is not applied and the best moment in
 the demo will not land:
@@ -53,7 +53,8 @@ Point out in the trace:
   cross-check is between SREC's declared evacuation level and NIFC's fire
   geometry. Two independent authorities, not two views of one table.
 - `get_active_incidents` — the Rifle Club Fire, its distance, and **when it was
-  last observed**.
+  last observed**. FIRMS satellite detections appear separately as point
+  evidence; they are not presented as official incidents or perimeters.
 
 ## 1:05–1:45 — A personalised, validated plan
 
@@ -79,6 +80,12 @@ Route A is selected. Show the map: the grey dashed line is the rejected route.
 **3. The verdict is not written by the model.** Point at the panel header —
 *"decided by the safety guard, not the model"* — and at the model's prose
 underneath, which is explicitly labelled as rendered *around* the decision.
+
+If you want to show the environmental enhancement, point to the PM2.5 value on
+the route card. `validate_route` fetched OpenAQ internally; the model did not
+receive a new AQ tool. It is a soft warning/ranking signal unless the household
+has medical needs, when a value above the configured threshold becomes a hard
+route rejection.
 
 ## 1:45–2:30 — The always-on moment
 
@@ -106,9 +113,9 @@ The map redraws: route A turns grey, route B turns blue.
 > The pink line and the `[SIM]` markers are there because replayed and simulated
 > events have to be labelled. That rule is in the design.
 
-## 2:30–3:05 — The containment moment
+## 2:30–3:05 — The boundary demonstrations
 
-Two blocks, and neither is simulated by the agent.
+Two real refusals at two different enforcement layers.
 
 **First — a network capability.** Press **Ask the agent to use the fire camera**.
 
@@ -135,26 +142,31 @@ been run:
 > policy is the only thing standing between the agent and that data.
 
 Verified end to end while building this — policy versions 12 → 13 → 14, denied →
-`HTTP 200` → denied. The sequence is recorded in
+`HTTP 200` → denied. Current policy revision 15 preserves that denial while
+adding only the approved OpenAQ and FIRMS endpoints. The sequence is recorded in
 [SOURCES.md](./SOURCES.md#deliberately-denied--camerasalertwildfireorg).
 
 An earlier revision of this tool pointed at a placeholder domain, and that was
 worth fixing: a host that does not exist fails whether or not a policy exists, so
 the refusal proved nothing. Do not let anyone accept the weaker version.
 
-**Second — an action scope.** Press **Send the plan to an unapproved recipient**.
+**Second — application-layer action authorization.** Press **Send the plan to
+an unapproved recipient**.
 
 ```
 Action blocked
 Reason: recipient random-person@example.com was not approved in the current session
 ```
 
-> Network scope and action scope are separate policies. The first is enforced by
-> the proxy, the second by the session. Both refuse rather than negotiate.
+> OpenShell enforces the network boundary. It does not know which contacts the
+> resident approved earlier in the conversation. Application code running
+> inside the sandbox enforces that session-level authorization. The refusal is
+> real, although successful delivery is simulated in this prototype.
 
 ## 3:05–3:35 — The NVIDIA story
 
-- **Nemotron Lightning via NIM on the GN100** — `nvidia/Qwen3.6-35B-A3B-NVFP4`,
+- **Nemotron Lightning via NIM on the GN100** —
+  `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4`,
   served locally. The header chip is live; nothing leaves the box for inference.
 - **NemoClaw** orchestrates the agent loop and owns the sandbox.
 - **OpenShell** enforces the egress policy the demo just ran into.
@@ -177,12 +189,6 @@ highway alerts and the 113-site emergency facility list are **real, captured
 live**. The evacuation overlay — zones, activated shelters, local closures — is
 **authored**, because SREC publishes nothing when no evacuation is running. On
 the day the fixtures were built that layer returned a literal `{"count":0}`.
-
-For the affected-address path, type **8414 North Molly Street** and choose the
-labelled replay suggestion. The selected coordinates are submitted with the
-plan, so the backend does not repeat the geocoder call. Candidate road routes
-still come from OSRM and must pass the same deterministic fire, closure, and
-Level 3 exit checks before the map draws one in blue.
 
 **Live** (`./scripts/run.sh --live`) fetches everything at request time through
 the OpenShell policy, and on a quiet day it tells a different but arguably

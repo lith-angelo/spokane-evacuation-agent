@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "origin": "authored",
+    "reason": "Deterministic fresh PM2.5 reading for the hackathon replay; live mode uses OpenAQ v3."
+  },
+  "meta": {"found": 1},
+  "results": [
+    {
+      "datetime": {"utc": "__REPLAY_NOW_ISO__"},
+      "value": 18.4,
+      "coordinates": {"latitude": 47.67, "longitude": -117.40},
+      "sensorsId": 201,
+      "locationsId": 101
+    }
+  ]
+}

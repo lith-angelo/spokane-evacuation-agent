@@ -26,6 +26,7 @@ function palette() {
     clear: token('--map-clear', '#30d158'),
     unknown: token('--unknown', '#8e8e93'),
     fire: token('--map-fire', '#ff6b35'),
+    hotspot: token('--map-hotspot', '#bf5af2'),
     route: token('--map-route', '#0a84ff'),
     routeDead: token('--map-route-dead', '#55607a'),
     sim: token('--map-sim', '#ff375f'),
@@ -192,6 +193,30 @@ export default function MapPanel({ state, theme = 'light' }) {
       bounds.push(poly.getBounds())
     }
 
+    // Satellite thermal detections are points, never inferred perimeters. A
+    // distinct colour and circular marker keeps that authority difference
+    // visible instead of making a detection look like a mapped fire boundary.
+    for (const hotspot of state.fire_hotspots || []) {
+      const marker = L.circleMarker([hotspot.lat, hotspot.lon], {
+        radius: hotspot.record?.stale ? 4 : 6,
+        color: p.hotspot,
+        weight: 2,
+        fillColor: p.hotspot,
+        fillOpacity: hotspot.record?.stale ? 0.25 : 0.75,
+        dashArray: hotspot.record?.stale ? '3,3' : undefined,
+      })
+      marker.bindPopup(
+        `<b>Satellite thermal detection</b><br>` +
+          `${hotspot.instrument || 'sensor'} · ${hotspot.satellite || 'satellite'}` +
+          (hotspot.fire_radiative_power_mw != null
+            ? `<br>${hotspot.fire_radiative_power_mw.toFixed(1)} MW fire radiative power`
+            : '') +
+          `<br><span style="opacity:.7">${hotspot.record?.stale ? '⚠ stale — ' : ''}` +
+          `FIRMS point evidence, not a perimeter</span>`
+      )
+      marker.addTo(group)
+    }
+
     for (const c of state.closures || []) {
       for (const line of toLines(c.geometry)) {
         if (line.length < 2) continue
@@ -327,13 +352,14 @@ export default function MapPanel({ state, theme = 'light' }) {
           ['box', 'var(--l2)', 'Level 2 zone'],
           ['box', 'var(--l1)', 'Level 1 zone'],
           ['box', 'var(--fire)', 'Fire perimeter'],
+          ['dot', 'var(--hotspot)', 'FIRMS thermal detection'],
           ['line', 'var(--route)', 'Selected route'],
           ['line', 'var(--route-dead)', 'Rejected route'],
           ['line', 'var(--sim)', 'Simulated closure'],
         ].map(([shape, color, label]) => (
           <div className="legend-row" key={label}>
             <span
-              className={`sw ${shape === 'box' ? 'box' : ''}`}
+              className={`sw ${shape === 'box' ? 'box' : shape === 'dot' ? 'dot' : ''}`}
               style={{ background: color }}
             />
             {label}

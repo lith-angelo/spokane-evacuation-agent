@@ -38,6 +38,22 @@ class Settings:
     route_provider: str = os.getenv("EVAC_ROUTE_PROVIDER", "osrm")
     live_location_in_replay: bool = _bool("EVAC_LIVE_LOCATION_IN_REPLAY", False)
 
+    # Environmental data credentials. In the contained runtime these values
+    # should be OpenShell placeholders backed by generic providers, not real
+    # secrets stored in the repository or exposed to the model.
+    openaq_api_key: str = os.getenv("OPENAQ_API_KEY", "")
+    firms_map_key: str = os.getenv("FIRMS_MAP_KEY", "")
+    air_quality_ttl_seconds: int = int(os.getenv("EVAC_AIR_QUALITY_TTL_SECONDS", "7200"))
+    air_quality_station_radius_km: float = float(
+        os.getenv("EVAC_AIR_QUALITY_STATION_RADIUS_KM", "25")
+    )
+    air_quality_medical_threshold: float = float(
+        os.getenv("EVAC_AIR_QUALITY_MEDICAL_THRESHOLD", "35.5")
+    )
+    firms_hotspot_ttl_seconds: int = int(
+        os.getenv("EVAC_FIRMS_HOTSPOT_TTL_SECONDS", "21600")
+    )
+
     sandbox: str = os.getenv("EVAC_SANDBOX", "my-assistant")
     openshell_bin: str = os.getenv(
         "EVAC_OPENSHELL_BIN", str(Path.home() / ".local/bin/openshell")
@@ -74,6 +90,8 @@ ALLOWED_HOSTS: frozenset[str] = frozenset(
         "nominatim.openstreetmap.org",
         "router.project-osrm.org",
         "api.mapbox.com",
+        "api.openaq.org",
+        "firms.modaps.eosdis.nasa.gov",
     }
 )
 

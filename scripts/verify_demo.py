@@ -115,6 +115,25 @@ def main() -> int:
     check("A route was approved and selected", bool(state.get("current_route")),
           (state.get("current_route") or {}).get("route_id", ""))
 
+    section("6a. Environmental evidence enriches existing capabilities")
+    route_aq = (state.get("current_route") or {}).get("air_quality") or {}
+    check(
+        "Validated route carries fresh OpenAQ PM2.5 evidence",
+        route_aq.get("status") == "available"
+        and route_aq.get("source") == "OPENAQ"
+        and isinstance(route_aq.get("max_pm25"), (int, float))
+        and bool(route_aq.get("updated_at")),
+        f"status={route_aq.get('status')} max_pm25={route_aq.get('max_pm25')}",
+    )
+    hotspots = state.get("fire_hotspots", [])
+    check(
+        "FIRMS detections remain a separate point-evidence collection",
+        bool(hotspots)
+        and all(h["record"]["source_id"] == "FIRMS" for h in hotspots)
+        and all("perimeter" not in h for h in hotspots),
+        f"{len(hotspots)} detection(s)",
+    )
+
     section("7. The activity panel shows tools, timings and reasons")
     steps = state["steps"]
     kinds = {s["kind"] for s in steps}
@@ -186,7 +205,7 @@ def main() -> int:
     check("Blocked capabilities are named as gaps",
           any("blocked by policy" in u for u in v["unverified"]))
     check("Stale data is disclosed, not hidden",
-          any("Stale" in u for u in v["unverified"]) or True)
+          any("Stale" in u for u in v["unverified"]))
 
     section("13. No re-entry without an explicit all-clear")
     home = call(f"/api/session/{sid}/message", {"message": "Can I go home yet?"})
@@ -197,6 +216,7 @@ def main() -> int:
     section("14. UI data contract")
     required_top = [
         "session_id", "place", "needs", "level_label", "zones", "incidents",
+        "fire_hotspots", "air_quality_readings",
         "shelters", "rejected_shelters", "closures", "approved_routes",
         "rejected_routes", "current_route", "destination", "verdict",
         "consensus", "sources", "blocked", "steps", "monitor_events",

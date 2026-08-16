@@ -70,6 +70,12 @@ have been easier and would have meant nothing.
 capability against a real host that the policy omits. There is no simulated
 failure branch anywhere in it.
 
+**Authorization layers are named precisely.** OpenShell enforces network,
+filesystem and process boundaries. Tool availability and approved notification
+recipients are application-layer checks running inside that sandbox boundary;
+they are not presented as native OpenShell policy concepts. Notification
+authorization is real, while successful delivery remains simulated.
+
 ## Architecture
 
 ```text
@@ -97,7 +103,8 @@ NemoClaw/OpenShell sandbox
               │
    services3.arcgis.com (NIFC WFIGS · SREC) · data.wsdot.wa.gov
    · nominatim.openstreetmap.org · router.project-osrm.org
-   · api.mapbox.com (optional live location)
+   · api.mapbox.com (optional live location) · api.openaq.org (PM2.5)
+   · firms.modaps.eosdis.nasa.gov (satellite thermal detections)
 ```
 
 `EVAC_DATA_MODE=replay` serves fixtures **at the egress layer**, so every parser,
@@ -108,9 +115,10 @@ deterministic demo.
 
 ## Data sources
 
-NIFC WFIGS (incidents, perimeters) · SREC (evacuation zones, shelters, local
-closures) · WSDOT (highway closures) · Mapbox or Nominatim (geocoding) · OSRM
-(routing). Verified URL shapes, the two distinct policy-denial
+NIFC WFIGS (incidents, perimeters) · NASA FIRMS (satellite thermal detections) ·
+OpenAQ (PM2.5) · SREC (evacuation zones, shelters, local closures) · WSDOT
+(highway closures) · Mapbox or Nominatim (geocoding) · OSRM (routing). Verified
+URL shapes, the two distinct policy-denial
 signatures, and two proxy quirks that constrain URL construction are in
 [docs/SOURCES.md](docs/SOURCES.md).
 
@@ -134,7 +142,7 @@ cannot use would have made the allowlist dishonest.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -q            # 72 tests, no network, no sandbox
+.venv/bin/python -m pytest -q            # 111 tests, no network, no sandbox
 .venv/bin/python scripts/verify_demo.py  # end-to-end against a running server
 ```
 
@@ -150,9 +158,10 @@ EVAC_DATA_MODE=live .venv/bin/python scripts/build_fixtures.py
 ```
 
 Captured fixtures are real bytes from the live sources. Authored fixtures cover
-only the evacuation overlay, which is genuinely empty when no evacuation is
-running. Each file records which it is in `_meta.origin`, and the UI labels every
-replayed source.
+the evacuation overlay, which is genuinely empty when no evacuation is running,
+plus the deterministic OpenAQ/FIRMS evidence used by the scenario. Each JSON
+fixture records its origin in `_meta.origin`, and the UI labels every replayed
+source.
 
 ## Not built
 

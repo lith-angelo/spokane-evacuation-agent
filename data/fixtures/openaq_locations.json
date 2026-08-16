@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "origin": "authored",
+    "reason": "Deterministic PM2.5 station for the hackathon replay; live mode uses OpenAQ v3."
+  },
+  "meta": {"found": 1},
+  "results": [
+    {
+      "id": 101,
+      "name": "Spokane replay monitor",
+      "coordinates": {"latitude": 47.67, "longitude": -117.40},
+      "provider": {"name": "Replay fixture"},
+      "owner": {"name": "Authored demonstration"},
+      "sensors": [
+        {
+          "id": 201,
+          "parameter": {"id": 2, "name": "pm25", "units": "µg/m³"}
+        }
+      ]
+    }
+  ]
+}

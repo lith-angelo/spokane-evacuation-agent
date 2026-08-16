@@ -8,23 +8,23 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 |---|---|---|---|---|
 | C01 | Run the working system locally on the GN100 | PASS | The contained FastAPI runtime is reachable through an OpenShell service on the GN100; the local vLLM endpoint runs on port 8000. | Preserve in final verification. |
 | C02 | Nemotron Lightning is a meaningful core model | PASS | `NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4` is served locally; recorded traces show it selecting evacuation, shelter, route-planning, and route-validation tools. | Preserve trace evidence and explain its role in the submission. |
-| C03 | Use open data and identify provenance/freshness | PASS | SREC, WFIGS, WSDOT, Spokane County GIS, and per-record timestamps are represented. | Recheck final UI labels and source links. |
-| C04 | Clearly distinguish replay, synthetic, derived, and live data | PASS | The UI displays `REPLAY`; simulated closure events and replay records are labelled. | Preserve labels in screenshots and video. |
+| C03 | Use open data and identify provenance/freshness | PASS | SREC, WFIGS, WSDOT, NASA FIRMS, OpenAQ, and per-record timestamps are represented. | Recheck final UI labels and source links. |
+| C04 | Clearly distinguish replay, synthetic, derived, and live data | PASS | The UI displays the active `LIVE` or `REPLAY` mode; simulated closures, replay records, and derived values are separately labelled. | Preserve labels in screenshots and video. |
 | C05 | OpenShell policy is actually enforcing | PASS | Host-direct fallback is disabled; health reports `policy_enforced=true`; OpenShell denied ALERTWildfire while approved Mapbox geocoding succeeded. | Preserve the allow-and-deny probes in final verification. |
 | C06 | Use both NemoClaw and OpenShell to contain the capable agent | PASS | The complete FastAPI harness runs inside the `my-assistant` NemoClaw sandbox with `EVAC_INSIDE_OPENSHELL=1`; its full verifier passed through the exposed OpenShell service. | Preserve the contained launch and verification evidence in the final demo. |
-| C07 | Enforce least-privilege network and filesystem policy | PASS | Runtime preset version 14 grants five required public-data hosts to Python/curl, plus local inference. Unused GIS/weather/training hosts and Node were removed; built-in OpenClaw endpoints cannot be borrowed by curl; `/etc` writes and host-repository access were denied. | Re-run the negative probes after any policy or sandbox-image change. |
-| C08 | Active OpenShell policy matches the repository policy | PASS | Dry-run succeeded; repository policy version 14 was applied and loaded with hash `85bf4ccaa69c`; removed-host and allowed-host probes behaved as declared. | Re-export after any policy edit and preserve the final hash. |
+| C07 | Enforce least-privilege network and filesystem policy | PASS | Runtime preset version 15 grants seven required public-data hosts to Python/curl, plus local inference. Unused GIS/weather/training hosts and Node were removed; built-in OpenClaw endpoints cannot be borrowed by curl; `/etc` writes and host-repository access were denied. | Re-run the negative probes after any policy or sandbox-image change. |
+| C08 | Active OpenShell policy matches the repository policy | PASS | Repository policy revision 15 is loaded with hash `a3e683a817a7`; approved-source probes succeed and ALERTWildfire remains denied. | Re-export after any policy edit and preserve the final hash. |
 | C09 | NemoClaw inference configuration uses Lightning | PASS | NemoClaw reports `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4`; `inference.local` is reachable and the host vLLM backend is healthy. | Preserve this status in final verification. |
 | C10 | Unsafe route is rejected with an explicit reason | PASS | Full verifier generated three candidates and rejected route C for the W Driscoll Blvd closure. | Preserve in final verification. |
 | C11 | Closure triggers autonomous replan and notification preparation | PASS | Monitor detected the Francis Ave closure, changed route A to route B, and prepared a labelled simulated notification. | Preserve in final verification. |
-| C12 | Backend, frontend, and full demo validation pass | PASS | Backend 79/79, frontend 22/22, production build, and the complete `verify_demo.py` flow pass through the contained public port. | Repeat after final changes. |
+| C12 | Backend, frontend, and full demo validation pass | PASS | Backend 111/111, frontend 25/25, production build, and the complete `verify_demo.py` flow pass through the contained service. | Repeat after final changes. |
 | C13 | No credentials are committed or exposed publicly | IN PROGRESS | Current tree, untracked files, and every Git revision scan clean. Sensitive URL query values are redacted before logging/persistence. A dedicated Mapbox token was created, installed only in host/sandbox `.env` files, verified through live autocomplete, and the previously exposed default Mapbox token was refreshed. The unused DeepSeek key still requires account-side revocation. | Revoke the previously shared DeepSeek key and confirm that no active deployment depends on it. |
 | C14 | Demo personal data is synthetic and privacy limitations are clear | PASS | UI has an always-visible synthetic-data/no-delivery/not-911 notice; replay startup purges sessions, steps and snapshots; health exposes retention; public port binds only to the GN100 Tailscale address. | Preserve the Tailscale-only bind and restart-purge behavior. |
-| C15 | Public GitHub repository contains the final system | PASS | Reviewed runtime scope was committed as `cf00ff0`, pushed to public branch `codex/gn100-contained-demo`, and opened as draft PR #2; an unauthenticated raw README request returned HTTP 200. Experimental unused training artifacts were intentionally excluded. | Merge PR #2 after teammate review; preserve the public branch until submission. |
-| C16 | Required code was written during the event | PASS | The pre-event initialization commit contains no files; functional commits begin during the hackathon. | Preserve commit history and do not squash it into a misleading pre-event timestamp. |
-| C17 | Third-party code complies with the two-week open-source rule | PASS | Python and Node direct dependencies are exact-pinned; complete lockfiles exist; `docs/THIRD_PARTY_NOTICES.md` records versions, licenses, upstreams, and public-since dates years before the 2026-08-01 cutoff. | Preserve lockfiles and notices; do not add an unreviewed dependency before code freeze. |
+| C15 | Public GitHub repository contains the final system | IN PROGRESS | The repository and draft PR #2 are public, but the latest live-data, shelter-safety, UI, dependency, and documentation changes remain in the GN100 worktree. Experimental training artifacts are ignored and excluded. | Review, commit, push, and confirm the final branch is the repository URL submitted to judges. |
+| C16 | Required code was written during the event | IN PROGRESS | The current main ancestry starts with an empty pre-event initialization commit and functional commits begin during the hackathon. A separate pre-event concept branch exists; it was not merged, shares no Git blobs with this implementation, and is disclosed in `docs/DESIGN.md`. | Preserve history and ask the organizer whether the disclosed prior concept requires any additional note in the submission. |
+| C17 | Third-party code complies with the two-week open-source rule | PASS | Direct dependencies are exact-pinned to releases uploaded no later than 2026-07-31; complete integrity lockfiles exist; `docs/THIRD_PARTY_NOTICES.md` records exact-version registry dates; npm audit reports zero vulnerabilities. | Preserve lockfiles and notices; do not add an unreviewed dependency before code freeze. |
 | C18 | Team, onsite GN100 rule, track-specific Notion rules, and video criteria | BLOCKED | Public Notion, video instructions, submission checklist and Nemotron bounty criteria were read. Do-track and technical criteria pass; GN100 remains onsite. Actual names/roles/contacts and one-submission ownership require team input. | Team provides and consents to roster/contact publication, and identifies the single submitter. |
-| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | Final code is public in PR #2; `docs/SUBMISSION.md` contains the description, Do track, checklist, and four-minute script. Video URL and form submission are not verified. | Merge the reviewed PR, record/upload the live video with camera on, add its URL, and submit before 11:00 AM PDT. |
+| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | `docs/SUBMISSION.md` contains the description, Do track, checklist, and four-minute script. Latest code is not pushed; the video URL and form submission are not verified. | Push the reviewed final branch, record/upload the live video with camera on, add its URL, and submit before 11:00 AM PDT. |
 | C20 | Documentation describes the real security boundary | PASS | README distinguishes the submitted contained runtime from host development mode, and the observed deployment now matches the contained-runtime description. | Recheck after any deployment or architecture change. |
 
 ## Verification log
@@ -177,24 +177,30 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
   populated cards, the rail measured 2,073 px of content in a 541 px viewport;
   a 620 px rail scroll left the map bounds unchanged.
 
-### 2026-08-15 - Level 3 egress and selected-address routing
+### 2026-08-15 - Final containment and dependency-age correction
 
-- Replaced the route-length-in-zone heuristic with evacuation semantics: a
-  resident inside Level 3 may exit once and stay out; routes that never exit,
-  re-enter, or enter from outside still fail closed.
-- Preserved hard rejection for fire perimeters, the 1.5 km fire buffer, and
-  road closures.
-- Carried the coordinates selected by address autocomplete into `/api/plan`,
-  avoiding a second geocoder request and preventing valid locations from being
-  lost between lookup and routing.
-- Added an explicitly labelled captured replay suggestion for 8414 North Molly
-  Street so the demo remains testable during an upstream DNS outage; hazard,
-  shelter, routing, and safety decisions still run normally.
-- Verified that address end to end at Level 3: Spokane Falls Community College,
-  route A selected, 7.21 km, about 11.5 minutes, with two routes approved.
-- Ran 49 focused route-safety tests, all 79 backend tests, all 22 frontend
-  tests, the production build, and the complete 14-stage demo verifier; every
-  check passed through the contained GN100 service.
+- Restored the latest live FastAPI runtime inside the `my-assistant` sandbox;
+  the persistent localhost OpenShell forward on port 8811 now feeds the
+  Tailscale demo URL. Both endpoints report `mode=live` and
+  `policy_enforced=true`.
+- Confirmed active OpenShell policy revision 15, hash `a3e683a817a7`, and the
+  exact local model `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4`.
+- Replaced three exact dependency releases newer than the two-week cutoff:
+  Uvicorn 0.52.3 → 0.52.0, OpenAI Python 3.1.0 → 2.52.0, and Motion 13.1.0 →
+  12.43.0. Regenerated both dependency locks from clean installs and recorded
+  exact-version release dates from the official registries.
+- Tested a stricter pre-cutoff resolution for every npm transitive patch, then
+  rejected it because it forced a `nanoid` version with a known high-severity
+  advisory. The final lock keeps the pre-cutoff direct pins and secure current
+  transitive patches; `npm audit --audit-level=low` reports zero findings.
+- Passed 111 backend tests, 25 frontend tests, the production build, `pip
+  check`, and the complete 14-stage replay verifier through a second contained
+  service. The live demo remained available during verification.
+- Ignored AppleDouble metadata and the unused `data/training/` experiment so
+  neither can enter the submission accidentally; no user artifact was deleted.
+- Corrected the documentation's test count, exact model ID, policy revision,
+  contained runtime topology, dependency-age evidence, and public-repository
+  readiness claim.
 
 ## Change rule
 

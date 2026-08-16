@@ -102,6 +102,7 @@
   --blocked: light-dark(#a33bc2, #bf5af2);
   --sim: light-dark(#d70040, #ff375f);
   --fire: light-dark(#e04a12, #ff6b35);
+  --hotspot: light-dark(#8a3ffc, #bf5af2);
 
   /* Feedback colours, one per kind. In light mode these are darkened well past
      the system colours: #ff9500 on white is 1.9:1 and unreadable as text. */
@@ -116,6 +117,7 @@
   --map-l2: light-dark(#c25100, #ff9f0a);
   --map-l1: light-dark(#a16207, #ffd60a);
   --map-fire: light-dark(#d2400a, #ff6b35);
+  --map-hotspot: light-dark(#7b2cbf, #bf5af2);
   --map-clear: light-dark(#1d8f3f, #30d158);
   --map-route: light-dark(#0060df, #0a84ff);
   --map-route-dead: light-dark(#9a9aa0, #5b6478);
@@ -922,10 +924,9 @@ input[type='text']::placeholder {
 /* ---------- sources ---------- */
 
 .src {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0.4rem var(--space-3);
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem var(--space-3);
   border-bottom: 1px solid var(--hairline);
 }
 
@@ -933,12 +934,17 @@ input[type='text']::placeholder {
   border-bottom: none;
 }
 
+.src-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 .src .id {
-  font-family: var(--mono);
-  font-size: 0.6875rem;
-  width: 5.75rem;
-  flex-shrink: 0;
-  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--text-primary);
 }
 
 .outcome {
@@ -977,13 +983,17 @@ input[type='text']::placeholder {
   border-color: color-mix(in srgb, var(--error) 24%, transparent);
 }
 
+.src .summary {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 .src .detail {
   color: var(--text-quaternary);
-  font-size: 0.6875rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  line-height: 1.35;
 }
 
 /* ---------- map ---------- */
@@ -1097,6 +1107,12 @@ input[type='text']::placeholder {
 .sw.box {
   height: 0.625rem;
   border-radius: 2px;
+}
+
+.sw.dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
 }
 
 .map-intro {

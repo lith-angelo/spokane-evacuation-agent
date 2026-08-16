@@ -25,8 +25,17 @@ from dataclasses import dataclass, field
 from shapely.geometry import Point
 from shapely.ops import split
 
-from app.geo import clearance_km, intersects, to_geometry
+from app.geo import (
+    clearance_km,
+    haversine_km,
+    intersects,
+    point_distance_km,
+    point_in,
+    to_geometry,
+)
 from app.models import (
+    AirQualityAssessment,
+    AirQualityReading,
     BlockedAction,
     Closure,
     Consensus,
@@ -49,6 +58,7 @@ PERIMETER_BUFFER_KM = 1.5
 # How close a fire has to be, with no published evacuation zone, before the
 # absence of a zone becomes a reportable conflict rather than a quiet gap.
 UNZONED_PROXIMITY_KM = 8.0
+MEDICAL_PM25_THRESHOLD_UG_M3 = 35.5
 
 
 @dataclass
@@ -61,6 +71,7 @@ class HazardContext:
     zone: EvacZone | None = None
     zones: list[EvacZone] = field(default_factory=list)
     incidents: list[Incident] = field(default_factory=list)
+    air_quality_readings: list[AirQualityReading] = field(default_factory=list)
     shelters: list[Shelter] = field(default_factory=list)
     closures: list[Closure] = field(default_factory=list)
     routes: list[RouteCandidate] = field(default_factory=list)
@@ -68,6 +79,8 @@ class HazardContext:
     blocked: list[BlockedAction] = field(default_factory=list)
     hazmat_cleared: bool | None = None
     hazmat_note: str | None = None
+    air_quality_medical_threshold: float = MEDICAL_PM25_THRESHOLD_UG_M3
+    air_quality_station_radius_km: float = 25.0
 
 
 # --- Gate 6 groundwork: what did we actually manage to look at? --------------
@@ -106,6 +119,10 @@ def coverage_gaps(ctx: HazardContext) -> list[str]:
         gaps.append("No evacuation-zone source was consulted for this location.")
     if SourceId.WFIGS not in seen:
         gaps.append("No fire-perimeter source was consulted for this location.")
+    if ctx.needs.medical and SourceId.OPENAQ not in seen:
+        gaps.append(
+            "No air-quality source was consulted for this medical-needs household."
+        )
 
     return gaps
 
@@ -228,7 +245,12 @@ def evaluate_consensus(ctx: HazardContext) -> Consensus:
 
 
 def filter_shelters(
-    shelters: list[Shelter], needs: HouseholdNeeds
+    shelters: list[Shelter],
+    needs: HouseholdNeeds,
+    *,
+    zones: list[EvacZone] | None = None,
+    incidents: list[Incident] | None = None,
+    buffer_km_value: float = PERIMETER_BUFFER_KM,
 ) -> tuple[list[Shelter], list[tuple[Shelter, list[str]]]]:
     """Split shelters into eligible and rejected.
 
@@ -240,14 +262,151 @@ def filter_shelters(
     rejected: list[tuple[Shelter, list[str]]] = []
 
     for s in shelters:
-        unmet = s.unmet(needs)
-        if unmet:
-            rejected.append((s, unmet))
+        reasons = s.unmet(needs) + shelter_hazard_reasons(
+            s,
+            zones or [],
+            incidents or [],
+            buffer_km_value=buffer_km_value,
+        )
+        if reasons:
+            rejected.append((s, reasons))
         else:
             eligible.append(s)
 
-    eligible.sort(key=lambda s: s.distance_km if s.distance_km is not None else 1e9)
+    def rank(shelter: Shelter):
+        distance = shelter.distance_km if shelter.distance_km is not None else 1e9
+        if not needs.medical:
+            return (distance,)
+
+        aq = shelter.air_quality
+        if aq and aq.status == "available" and aq.max_pm25 is not None:
+            # AQ is a ranking input only. It runs after hard constraints and
+            # never turns an ineligible shelter into an eligible one.
+            bucket = 0 if aq.max_pm25 <= MEDICAL_PM25_THRESHOLD_UG_M3 else 2
+            return (bucket, aq.max_pm25, distance)
+        # Unknown is not cleaner than measured low air, but it is also not a
+        # hard rejection of a shelter that meets every household requirement.
+        return (1, 1e9, distance)
+
+    eligible.sort(key=rank)
     return eligible, rejected
+
+
+def shelter_hazard_reasons(
+    shelter: Shelter,
+    zones: list[EvacZone],
+    incidents: list[Incident],
+    *,
+    buffer_km_value: float = PERIMETER_BUFFER_KM,
+) -> list[str]:
+    """Reasons a shelter cannot be used as an evacuation destination.
+
+    Only authoritative area geometry participates. FIRMS detections are points,
+    not fire extents, and are intentionally absent from this gate.
+    """
+    reasons: list[str] = []
+    for zone in zones:
+        if zone.level is EvacLevel.LEVEL_3 and point_in(
+            shelter.lat, shelter.lon, zone.record.geometry
+        ):
+            reasons.append(
+                f"hazard: inside Level 3 zone {zone.boundary_desc or zone.zone_id}"
+            )
+
+    for incident in incidents:
+        if incident.perimeter is None:
+            continue
+        distance = point_distance_km(shelter.lat, shelter.lon, incident.perimeter)
+        if distance is not None and distance <= buffer_km_value:
+            reasons.append(
+                f"hazard: within {buffer_km_value:g} km of the "
+                f"{incident.name} perimeter"
+            )
+    return reasons
+
+
+def _assessment(
+    fresh: list[AirQualityReading],
+    stale: list[AirQualityReading],
+    *,
+    segment: str | None = None,
+) -> AirQualityAssessment:
+    if fresh:
+        worst = max(fresh, key=lambda reading: reading.pm25_ug_m3)
+        newest = max(
+            (reading.record.observed_at for reading in fresh if reading.record.observed_at),
+            default=None,
+        )
+        return AirQualityAssessment(
+            checked=True,
+            status="available",
+            max_pm25=worst.pm25_ug_m3,
+            unhealthy_segment=segment,
+            source=SourceId.OPENAQ,
+            updated_at=newest,
+            station_count=len(fresh),
+        )
+    if stale:
+        return AirQualityAssessment(
+            checked=True,
+            status="stale",
+            source=SourceId.OPENAQ,
+            station_count=len(stale),
+            note="Nearby PM2.5 readings are older than the two-hour freshness window.",
+        )
+    return AirQualityAssessment(
+        checked=False,
+        status="unavailable",
+        note="No sufficiently nearby PM2.5 station returned a usable reading.",
+    )
+
+
+def assess_shelter_air_quality(
+    shelter: Shelter,
+    readings: list[AirQualityReading],
+    *,
+    station_radius_km: float = 25.0,
+) -> AirQualityAssessment:
+    nearby = [
+        reading
+        for reading in readings
+        if haversine_km(shelter.lat, shelter.lon, reading.lat, reading.lon)
+        <= station_radius_km
+    ]
+    return _assessment(
+        [reading for reading in nearby if reading.usable],
+        [reading for reading in nearby if not reading.usable],
+    )
+
+
+def assess_route_air_quality(
+    route: RouteCandidate,
+    readings: list[AirQualityReading],
+    *,
+    station_radius_km: float = 25.0,
+) -> AirQualityAssessment:
+    geom = to_geometry(route.geometry)
+    if geom is None:
+        return AirQualityAssessment(
+            checked=False,
+            status="unavailable",
+            note="Route geometry could not be read for air-quality assessment.",
+        )
+
+    nearby: list[AirQualityReading] = []
+    for reading in readings:
+        distance = point_distance_km(reading.lat, reading.lon, geom)
+        if distance is not None and distance <= station_radius_km:
+            nearby.append(reading)
+
+    fresh = [reading for reading in nearby if reading.usable]
+    stale = [reading for reading in nearby if not reading.usable]
+    segment = None
+    if fresh:
+        worst = max(fresh, key=lambda reading: reading.pm25_ug_m3)
+        fraction = geom.project(Point(worst.lon, worst.lat), normalized=True)
+        segment = f"{route.route_id} at {round(fraction * 100):d}%"
+    return _assessment(fresh, stale, segment=segment)
 
 
 # --- Gate 3: route validation ------------------------------------------------
@@ -380,6 +539,30 @@ def validate_route(
         geom, [to_geometry(i.perimeter) for i in ctx.incidents if i.perimeter]
     )
 
+    route.air_quality = assess_route_air_quality(
+        route,
+        ctx.air_quality_readings,
+        station_radius_km=ctx.air_quality_station_radius_km,
+    )
+    if (
+        route.air_quality.status == "available"
+        and route.air_quality.max_pm25 is not None
+        and route.air_quality.max_pm25 > ctx.air_quality_medical_threshold
+    ):
+        route.air_quality_warning = (
+            f"PM2.5 reaches {route.air_quality.max_pm25:.1f} µg/m³ near "
+            f"{route.air_quality.unhealthy_segment or route.route_id} "
+            f"({SourceId.OPENAQ.value}, as of "
+            f"{route.air_quality.updated_at.isoformat() if route.air_quality.updated_at else 'unknown'})."
+        )
+        if ctx.needs.medical:
+            reasons.append(
+                f"PM2.5 {route.air_quality.max_pm25:.1f} µg/m³ exceeds the "
+                f"medical-needs threshold of {ctx.air_quality_medical_threshold:.1f}"
+            )
+    else:
+        route.air_quality_warning = None
+
     if reasons:
         route.approved = False
         route.rejection_reason = "; ".join(reasons)
@@ -405,6 +588,14 @@ def validate_all(ctx: HazardContext) -> tuple[list[RouteCandidate], list[RouteCa
     approved.sort(
         key=lambda r: (
             -(r.hazard_margin_km if r.hazard_margin_km is not None else 0.0),
+            (
+                0
+                if r.air_quality.status == "available"
+                and r.air_quality.max_pm25 is not None
+                and r.air_quality.max_pm25 <= ctx.air_quality_medical_threshold
+                else (2 if r.air_quality.status == "available" else 1)
+            ),
+            r.air_quality.max_pm25 if r.air_quality.max_pm25 is not None else 1e9,
             r.record.stale,
             r.eta_min,
         )
@@ -466,7 +657,12 @@ def decide(ctx: HazardContext) -> tuple[Verdict, list[RouteCandidate], list[Rout
     consensus = evaluate_consensus(ctx)
     gaps = coverage_gaps(ctx)
 
-    eligible, rejected_shelters = filter_shelters(ctx.shelters, ctx.needs)
+    eligible, rejected_shelters = filter_shelters(
+        ctx.shelters,
+        ctx.needs,
+        zones=ctx.zones,
+        incidents=ctx.incidents,
+    )
     approved_routes, rejected_routes = validate_all(ctx)
 
     # Take the most severe of the declared level and the cross-source reading.
@@ -569,6 +765,9 @@ def decide(ctx: HazardContext) -> tuple[Verdict, list[RouteCandidate], list[Rout
             f"{destination.name} does not publish live capacity; space is not confirmed."
         )
 
+    if route is not None and route.air_quality_warning:
+        warnings.append(route.air_quality_warning)
+
     # Gate 5, stated explicitly wherever a stale record is in play.
     stale_sources = sorted(
         {
@@ -623,6 +822,8 @@ def _all_records(ctx: HazardContext):
         yield c.record
     for s in ctx.shelters:
         yield s.record
+    for reading in ctx.air_quality_readings:
+        yield reading.record
 
 
 def _freshness(ctx: HazardContext, consensus: Consensus) -> str:
@@ -639,6 +840,13 @@ def _freshness(ctx: HazardContext, consensus: Consensus) -> str:
     hard = [c for c in ctx.closures if c.is_hard_closure]
     if hard:
         bits.append(f"Closures: {hard[0].record.as_of}")
+    fresh_aq = [reading for reading in ctx.air_quality_readings if reading.usable]
+    if fresh_aq:
+        newest_aq = max(
+            fresh_aq,
+            key=lambda reading: reading.record.observed_at or reading.record.fetched_at,
+        )
+        bits.append(f"Air quality: {newest_aq.record.as_of}")
     bits.append(
         f"Cross-source: {len(consensus.sources_checked)} checked, "
         f"{'agree' if consensus.agreed else 'disagree'}, "

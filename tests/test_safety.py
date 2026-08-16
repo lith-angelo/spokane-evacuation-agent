@@ -13,6 +13,8 @@ from datetime import timedelta
 import pytest
 
 from app.models import (
+    AirQualityAssessment,
+    AirQualityReading,
     BlockedAction,
     Closure,
     EvacLevel,
@@ -98,13 +100,20 @@ def incident(name="Test Fire", *, distance_km=4.0, perimeter=True, age_s=0, ttl=
     )
 
 
-def shelter(name, caps, *, distance_km=5.0) -> Shelter:
+def shelter(
+    name,
+    caps,
+    *,
+    distance_km=5.0,
+    lat=47.66,
+    lon=-117.30,
+) -> Shelter:
     return Shelter(
         shelter_id=f"s:{name}",
         name=name,
         address=f"{name} address",
-        lat=47.66,
-        lon=-117.30,
+        lat=lat,
+        lon=lon,
         distance_km=distance_km,
         capabilities=caps,
         record=rec(),
@@ -135,6 +144,24 @@ def closure(coords, *, hard=True, simulated=False, road="W Francis Ave") -> Clos
 
 def ok(source) -> SourceStatus:
     return SourceStatus(source_id=source, outcome="OK", record_count=1)
+
+
+def pm25(
+    value: float,
+    *,
+    lat: float = 47.69,
+    lon: float = -117.42,
+    age_s: int = 0,
+    ttl: int = 7200,
+) -> AirQualityReading:
+    return AirQualityReading(
+        station_id=f"station:{value}",
+        station_name="Test monitor",
+        lat=lat,
+        lon=lon,
+        pm25_ug_m3=value,
+        record=rec(SourceId.OPENAQ, age_s=age_s, ttl=ttl),
+    )
 
 
 # Safe corridor well south and east of the test perimeter.
@@ -221,6 +248,24 @@ class TestHardConstraints:
         assert eligible == []
         assert rejected[0][1] == ["medical"]
 
+    def test_pet_friendly_shelter_also_satisfies_service_animal_need(self):
+        eligible, rejected = filter_shelters(
+            [shelter("Pet friendly", ["pets"], distance_km=5.0)],
+            HouseholdNeeds(service_animal=True),
+        )
+
+        assert [item.name for item in eligible] == ["Pet friendly"]
+        assert rejected == []
+
+    def test_unknown_pet_policy_does_not_imply_service_animal_support(self):
+        eligible, rejected = filter_shelters(
+            [shelter("Unknown policy", [], distance_km=1.0)],
+            HouseholdNeeds(service_animal=True),
+        )
+
+        assert eligible == []
+        assert rejected[0][1] == ["service_animal"]
+
     def test_household_with_no_constraints_accepts_the_nearest(self):
         eligible, _ = filter_shelters(
             [
@@ -230,6 +275,66 @@ class TestHardConstraints:
             HouseholdNeeds(),
         )
         assert eligible[0].name == "Near"
+
+    def test_medical_shelter_air_quality_is_a_tiebreaker_after_hard_filters(self):
+        needs = HouseholdNeeds(medical=True)
+        close_smoky = shelter("Close smoky", ["medical"], distance_km=2.0)
+        close_smoky.air_quality = AirQualityAssessment(
+            checked=True, status="available", max_pm25=80.0
+        )
+        farther_clean = shelter("Farther clean", ["medical"], distance_km=8.0)
+        farther_clean.air_quality = AirQualityAssessment(
+            checked=True, status="available", max_pm25=10.0
+        )
+        nearest_ineligible = shelter("Nearest, no medical", [], distance_km=0.5)
+
+        eligible, rejected = filter_shelters(
+            [close_smoky, farther_clean, nearest_ineligible], needs
+        )
+
+        assert [item.name for item in eligible] == ["Farther clean", "Close smoky"]
+        assert [item.name for item, _ in rejected] == ["Nearest, no medical"]
+
+    def test_shelter_inside_level_3_is_rejected_before_distance_ranking(self):
+        inside = shelter(
+            "Inside red zone",
+            ["pets", "mobility"],
+            distance_km=1.0,
+            lat=ORIGIN[0],
+            lon=ORIGIN[1],
+        )
+        outside = shelter(
+            "Outside red zone", ["pets", "mobility"], distance_km=12.0
+        )
+
+        eligible, rejected = filter_shelters(
+            [inside, outside],
+            HouseholdNeeds(pets=True, mobility=True),
+            zones=[zone(EvacLevel.LEVEL_3)],
+        )
+
+        assert [item.name for item in eligible] == ["Outside red zone"]
+        assert rejected[0][0] is inside
+        assert "inside Level 3 zone" in rejected[0][1][0]
+
+    def test_shelter_within_fire_perimeter_buffer_is_rejected(self):
+        inside = shelter(
+            "Inside fire",
+            [],
+            distance_km=2.0,
+            lat=47.76,
+            lon=-117.56,
+        )
+        outside = shelter("Outside fire", [], distance_km=15.0)
+
+        eligible, rejected = filter_shelters(
+            [inside, outside],
+            HouseholdNeeds(),
+            incidents=[incident()],
+        )
+
+        assert [item.name for item in eligible] == ["Outside fire"]
+        assert "perimeter" in rejected[0][1][0]
 
 
 # --- Gate 3: route validation ------------------------------------------------
@@ -380,6 +485,49 @@ class TestRouteValidation:
 
         approved, _ = validate_all(ctx)
         assert approved[0].route_id == "route-slow"
+
+    def test_elevated_pm25_warns_but_does_not_reject_nonmedical_route(self):
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(),
+            air_quality_readings=[pm25(55.0)],
+        )
+
+        result = validate_route(route("route-aq", SAFE_COORDS), ctx)
+
+        assert result.approved is True
+        assert result.air_quality.checked is True
+        assert result.air_quality.status == "available"
+        assert result.air_quality.max_pm25 == 55.0
+        assert "PM2.5 reaches 55.0" in result.air_quality_warning
+
+    def test_elevated_pm25_rejects_route_for_medical_household(self):
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(medical=True),
+            air_quality_readings=[pm25(55.0)],
+        )
+
+        result = validate_route(route("route-aq", SAFE_COORDS), ctx)
+
+        assert result.approved is False
+        assert "medical-needs threshold" in result.rejection_reason
+        assert result.air_quality_warning
+
+    def test_stale_pm25_is_unavailable_and_never_treated_as_clean(self):
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(medical=True),
+            air_quality_readings=[pm25(90.0, age_s=7201)],
+        )
+
+        result = validate_route(route("route-aq", SAFE_COORDS), ctx)
+
+        assert result.approved is True
+        assert result.air_quality.checked is True
+        assert result.air_quality.status == "stale"
+        assert result.air_quality.max_pm25 is None
+        assert result.air_quality_warning is None
 
 
 # --- Gate 4: re-entry --------------------------------------------------------

@@ -4,27 +4,30 @@ Audit date: 2026-08-15. Event cutoff for the "open-sourced for 2+ weeks"
 rule: 2026-08-01.
 
 The table covers every direct code dependency. Versions are the exact versions
-used on the GN100 for the final tests. "Public since" is the upstream GitHub
-repository creation timestamp returned by the GitHub API; every project
-predates the event cutoff by years. Package metadata and the lockfile carry the
-license for transitive packages.
+used on the GN100 for the final tests. "Released" is the upload timestamp for
+that exact version in the official PyPI or npm registry—not the age of the
+upstream repository. Every direct pinned release in the table predates the
+2026-08-01 cutoff. Transitive versions remain integrity-locked and
+vulnerability-audited; a nested patch's publication date is not the date its
+open-source project first became public. Package metadata and the lockfiles
+carry the licenses for transitive packages.
 
-| Package | Exact version | License | Upstream / public since |
+| Package | Exact version | License | Exact-version release (UTC) |
 |---|---:|---|---|
-| FastAPI | 0.141.1 | MIT | [fastapi/fastapi](https://github.com/fastapi/fastapi), 2018-12-08 |
-| Uvicorn | 0.52.3 | BSD-3-Clause | [Kludex/uvicorn](https://github.com/Kludex/uvicorn), 2017-05-31 |
-| HTTPX | 0.28.1 | BSD-3-Clause | [encode/httpx](https://github.com/encode/httpx), 2019-04-04 |
-| Pydantic | 2.13.4 | MIT | [pydantic/pydantic](https://github.com/pydantic/pydantic), 2017-05-03 |
-| Shapely | 2.1.2 | BSD-3-Clause | [shapely/shapely](https://github.com/shapely/shapely), 2011-12-31 |
-| OpenAI Python client | 3.1.0 | Apache-2.0 | [openai/openai-python](https://github.com/openai/openai-python), 2020-10-25 |
-| python-dotenv | 1.2.2 | BSD-3-Clause | [theskumar/python-dotenv](https://github.com/theskumar/python-dotenv), 2014-09-06 |
-| pytest | 9.1.1 | MIT | [pytest-dev/pytest](https://github.com/pytest-dev/pytest), 2015-06-15 |
-| pytest-asyncio | 1.4.0 | Apache-2.0 | [pytest-dev/pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio), 2015-04-11 |
-| Leaflet | 1.9.4 | BSD-2-Clause | [Leaflet/Leaflet](https://github.com/Leaflet/Leaflet), 2010-09-22 |
-| Motion | 13.1.0 | MIT | [motiondivision/motion](https://github.com/motiondivision/motion), 2018-11-16 |
-| React / React DOM | 18.3.1 | MIT | [react/react](https://github.com/react/react), 2013-05-24 |
-| Vite | 6.4.3 | MIT | [vitejs/vite](https://github.com/vitejs/vite), 2020-04-21 |
-| Vite React plugin | 4.7.0 | MIT | [vitejs/vite-plugin-react](https://github.com/vitejs/vite-plugin-react), 2022-12-02 |
+| FastAPI | 0.141.1 | MIT | [2026-07-29](https://pypi.org/project/fastapi/0.141.1/) |
+| Uvicorn | 0.52.0 | BSD-3-Clause | [2026-07-29](https://pypi.org/project/uvicorn/0.52.0/) |
+| HTTPX | 0.28.1 | BSD-3-Clause | [2024-12-06](https://pypi.org/project/httpx/0.28.1/) |
+| Pydantic | 2.13.4 | MIT | [2026-05-06](https://pypi.org/project/pydantic/2.13.4/) |
+| Shapely | 2.1.2 | BSD-3-Clause | [2025-09-24](https://pypi.org/project/shapely/2.1.2/) |
+| OpenAI Python client | 2.52.0 | Apache-2.0 | [2026-07-31](https://pypi.org/project/openai/2.52.0/) |
+| python-dotenv | 1.2.2 | BSD-3-Clause | [2026-03-01](https://pypi.org/project/python-dotenv/1.2.2/) |
+| pytest | 9.1.1 | MIT | [2026-06-19](https://pypi.org/project/pytest/9.1.1/) |
+| pytest-asyncio | 1.4.0 | Apache-2.0 | [2026-05-26](https://pypi.org/project/pytest-asyncio/1.4.0/) |
+| Leaflet | 1.9.4 | BSD-2-Clause | [2023-05-18](https://www.npmjs.com/package/leaflet/v/1.9.4) |
+| Motion | 12.43.0 | MIT | [2026-07-28](https://www.npmjs.com/package/motion/v/12.43.0) |
+| React / React DOM | 18.3.1 | MIT | [2024-04-26](https://www.npmjs.com/package/react/v/18.3.1) |
+| Vite | 6.4.3 | MIT | [2026-06-01](https://www.npmjs.com/package/vite/v/6.4.3) |
+| Vite React plugin | 4.7.0 | MIT | [2025-07-18](https://www.npmjs.com/package/@vitejs/plugin-react/v/4.7.0) |
 
 Reproducibility files:
 

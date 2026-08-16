@@ -193,3 +193,50 @@ class TestCredentialRedaction:
         assert "pk.example" not in safe
         assert "access_token=[REDACTED]" in safe
         assert "q=Spokane" in safe
+
+    def test_firms_path_key_is_removed_from_recorded_urls(self):
+        from app.egress import _redact_url
+
+        safe = _redact_url(
+            "https://firms.modaps.eosdis.nasa.gov/api/area/csv/"
+            "secret-map-key/VIIRS_NOAA20_NRT/-118,47,-117,48/1"
+        )
+        assert "secret-map-key" not in safe
+        assert "/csv/[REDACTED]/VIIRS_NOAA20_NRT/" in safe
+
+
+class TestRequestHeaders:
+    def test_openaq_placeholder_can_be_sent_as_a_controlled_header(self):
+        from app.egress import _curl_args
+
+        placeholder = "openshell:resolve:env:OPENAQ_API_KEY"
+        argv = _curl_args(
+            "https://api.openaq.org/v3/locations",
+            method="GET",
+            timeout=10,
+            headers={"X-API-Key": placeholder, "Accept": "application/json"},
+        )
+        assert f"X-API-Key: {placeholder}" in argv
+        assert "Accept: application/json" in argv
+
+    def test_routing_and_credential_headers_are_not_arbitrarily_extensible(self):
+        from app.egress import _curl_args
+
+        with pytest.raises(ValueError, match="not allowed"):
+            _curl_args(
+                "https://api.openaq.org/v3/locations",
+                method="GET",
+                timeout=10,
+                headers={"Authorization": "Bearer surprise"},
+            )
+
+    def test_header_newlines_are_rejected(self):
+        from app.egress import _curl_args
+
+        with pytest.raises(ValueError, match="control lines"):
+            _curl_args(
+                "https://api.openaq.org/v3/locations",
+                method="GET",
+                timeout=10,
+                headers={"X-API-Key": "placeholder\r\nHost: attacker.invalid"},
+            )

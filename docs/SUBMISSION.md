@@ -43,6 +43,15 @@ of live, replayed, derived and synthetic data.
 - The GN100 runs the model, sandbox, FastAPI harness and UI together while the
   deterministic guard prevents model text from becoming an evacuation order.
 
+## Prior-work disclosure
+
+A separate public concept branch, `codex/spokane-evacuation-mvp`, predates the
+event. It was not merged into this submission, and the current implementation
+shares no Git blobs with it. The submitted branch's pre-event initialization
+commit is empty; its runnable commits begin during the hackathon. Keep this
+history visible and ask the organizer whether they want the concept branch
+called out in the form or video.
+
 ## Four-minute video run-of-show
 
 Keep the camera on and minimize cuts.
@@ -72,7 +81,7 @@ Keep the camera on and minimize cuts.
 | Project description | Ready | Text above. |
 | Challenge selected | Ready | Do. |
 | 3-5 minute live demo video | Missing | Record with camera on; upload unlisted to YouTube/Vimeo. |
-| Public repo or judge access | Ready | Public repository and PR #2. |
+| Public repo or judge access | In progress | The repository is public, but the latest reviewed worktree must still be committed and pushed. |
 | README quick start | Ready | `README.md` Quick start. |
 | Tech stack and architecture | Ready | `README.md` Architecture. |
 | Reproduction env/API keys | Ready | `.env.example`, no real keys committed. |
@@ -80,6 +89,7 @@ Keep the camera on and minimize cuts.
 | Known limitations and next steps | Ready | `README.md` final sections. |
 | Deployed URL or screen capture | Ready | Tailscale URL above; video will capture it. |
 | Team roster: names, roles, contacts | Missing | Obtain from the team; do not invent or publish without consent. |
+| Prior-concept organizer confirmation | Missing | Disclose the separate pre-event concept branch and ask whether any additional note is required. |
 
 ## Final pre-submit commands
 

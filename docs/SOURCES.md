@@ -3,7 +3,7 @@
 Every shape below was probed **through the sandbox** with the `spokane-evac`
 policy applied, unless a line says otherwise. Probed 2026-08-15.
 
-Policy state at time of writing: version 10, preset `spokane-evac` active on
+Policy state at time of writing: version 15, preset `spokane-evac` active on
 sandbox `my-assistant`.
 
 ## Egress signatures
@@ -95,12 +95,20 @@ SREC zone published is a real, reportable conflict — and under DESIGN §7.2
 ### DESIGN §9.2 — county GIS host
 
 `gismo.spokanecounty.org` is correct and reachable; `services.spokanegis.org` was
-not needed. It is not called by the seven-tool runtime, so it was removed from
+not needed. It is not called by the runtime, so it was removed from
 the submitted runtime policy instead of retaining an unused standing grant.
 
-### DESIGN §9.6 — weather/AQI
+### DESIGN §9.6 — air quality and live detection
 
-Out of scope for this build. Not in the allowlist, and the UI does not claim it.
+Implemented as internal evidence layers. OpenAQ v3 supplies PM2.5 readings with
+a two-hour freshness limit; NASA FIRMS supplies near-real-time VIIRS thermal
+detections with a six-hour freshness limit. Both public APIs can run live with
+free registered keys and require no funding or data partnership. The keys are
+resolved by OpenShell and never committed.
+
+Those feeds solve environmental detection, not local operational authority.
+Production-quality evacuation-zone boundaries and live shelter status still
+require county-by-county data availability and relationships.
 
 ## Verified endpoints
 
@@ -154,6 +162,30 @@ gives it a dedicated serial lane.
 Polyline format is mandatory here, not a preference — see the `;` truncation
 note above. `/nearest/v1/driving/{lon},{lat}` works unmodified (single
 coordinate, no separator).
+
+### OpenAQ v3 — `api.openaq.org`
+
+```
+/v3/locations?coordinates={lat},{lon}&radius={metres}&parameters_id=2
+/v3/locations/{location_id}/latest
+```
+
+The API key is sent in `X-API-Key`. Only parameter id 2 (PM2.5) is normalized.
+No nearby station, an unknown unit, or a reading older than two hours becomes
+`unavailable`; none is converted to a zero value. Air quality enriches the
+existing shelter and route tools rather than expanding the model's tool set.
+
+### NASA FIRMS — `firms.modaps.eosdis.nasa.gov`
+
+```
+/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/{west},{south},{east},{north}/1
+```
+
+FIRMS returns a bounding box, so the adapter applies a second radial-distance
+filter. The MAP key is redacted from egress results and record provenance.
+Each result remains a `FireHotspot` point with acquisition time, confidence,
+brightness, and fire-radiative power; it is never converted to a WFIGS incident,
+perimeter, or evacuation order.
 
 ### Deliberately denied — `cameras.alertwildfire.org`
 
