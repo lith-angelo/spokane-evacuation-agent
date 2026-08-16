@@ -40,6 +40,12 @@ every item on the acceptance checklist.
 
 To present it, follow [docs/DEMO.md](docs/DEMO.md).
 
+## Demo access
+
+On the event network, open `http://100.84.72.29:8811`. The port is bound only
+to the GN100's Tailscale address and forwards into the OpenShell sandbox; it is
+not a public Internet deployment.
+
 ## What makes it more than an API wrapper
 
 **The model never decides safety.** It parses intent, picks tools, and writes
@@ -121,6 +127,8 @@ cannot use would have made the allowlist dishonest.
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture, data contract, safety rules
 - [docs/THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) — pinned dependency,
   license, and open-source-age evidence
+- [docs/SUBMISSION.md](docs/SUBMISSION.md) — submission copy, required checklist,
+  and four-minute video run-of-show
 - [docs/PLAN.md](docs/PLAN.md) — the milestones this was built against
 
 ## Tests
@@ -151,3 +159,11 @@ replayed source.
 Turn-by-turn navigation. Any write to a government system. Real notification
 delivery. Authentication, roles, audit, retention, monitoring — all required for
 production, none present here.
+
+## Next steps
+
+Add authenticated responder/resident roles, short-lived encrypted session
+storage, an official road-closure feed with a routing SLA, production alert
+delivery with explicit consent, and continuous evaluation against labelled
+historical incidents. Keep the deterministic safety guard authoritative as
+those capabilities are added.

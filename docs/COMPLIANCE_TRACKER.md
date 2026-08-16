@@ -23,8 +23,8 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
 | C15 | Public GitHub repository contains the final system | PASS | Reviewed runtime scope was committed as `cf00ff0`, pushed to public branch `codex/gn100-contained-demo`, and opened as draft PR #2; an unauthenticated raw README request returned HTTP 200. Experimental unused training artifacts were intentionally excluded. | Merge PR #2 after teammate review; preserve the public branch until submission. |
 | C16 | Required code was written during the event | PASS | The pre-event initialization commit contains no files; functional commits begin during the hackathon. | Preserve commit history and do not squash it into a misleading pre-event timestamp. |
 | C17 | Third-party code complies with the two-week open-source rule | PASS | Python and Node direct dependencies are exact-pinned; complete lockfiles exist; `docs/THIRD_PARTY_NOTICES.md` records versions, licenses, upstreams, and public-since dates years before the 2026-08-01 cutoff. | Preserve lockfiles and notices; do not add an unreviewed dependency before code freeze. |
-| C18 | Team size, onsite GN100 rule, track-specific Notion rules, and video criteria | NOT VERIFIED | These facts are not available from the repository or supplied PDF. | Team confirms 3-5 people and onsite device; attach/export the event Notion requirements and check every item. |
-| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | Final code is public in PR #2 and README contains the project description; the final video and submission-form confirmation are not verified. | Merge the reviewed PR, record a 3-5 minute video, add its link, and submit before the deadline. |
+| C18 | Team, onsite GN100 rule, track-specific Notion rules, and video criteria | BLOCKED | Public Notion, video instructions, submission checklist and Nemotron bounty criteria were read. Do-track and technical criteria pass; GN100 remains onsite. Actual names/roles/contacts and one-submission ownership require team input. | Team provides and consents to roster/contact publication, and identifies the single submitter. |
+| C19 | Submission includes repository, description, and 3-5 minute video | IN PROGRESS | Final code is public in PR #2; `docs/SUBMISSION.md` contains the description, Do track, checklist, and four-minute script. Video URL and form submission are not verified. | Merge the reviewed PR, record/upload the live video with camera on, add its URL, and submit before 11:00 AM PDT. |
 | C20 | Documentation describes the real security boundary | PASS | README distinguishes the submitted contained runtime from host development mode, and the observed deployment now matches the contained-runtime description. | Recheck after any deployment or architecture change. |
 
 ## Verification log
@@ -132,6 +132,21 @@ Status values: `PASS`, `IN PROGRESS`, `BLOCKED`, `NOT VERIFIED`.
   20 frontend tests, npm audit, and production build all passed.
 - C15 and C17 moved to `PASS`; C19 remains open for teammate review/merge and
   the required video/submission-form steps.
+
+### 2026-08-15 - Official Notion and submission audit
+
+- Decoded the official Notion URL from the Deck QR code and read the public
+  event page, linked submission checklist, demo-video instructions, and
+  Nemotron bounty criteria.
+- Confirmed the project fits the `Do` track and the bounty requires Nemotron to
+  be central, reliable, grounded, useful and differentiated; the implemented
+  tool/state/replan role and evaluator cover those technical criteria.
+- Confirmed the video must be 3-5 minutes, keep the camera on, show the live core
+  loop, explain engineering depth/hardware choices, and close with impact.
+- Added `docs/SUBMISSION.md` with ready submission copy, exact checklist and a
+  four-minute run-of-show; added the Tailscale demo URL and next steps to README.
+- C18 is now `BLOCKED` only on real roster/contact/single-submitter facts that
+  cannot be inferred safely. C19 remains open only for merge, video and form.
 
 ## Change rule
 
