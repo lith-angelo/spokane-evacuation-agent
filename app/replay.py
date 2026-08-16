@@ -83,6 +83,18 @@ def scenario_meta() -> dict[str, Any]:
         return {}
 
 
+def is_scenario_query(query: str) -> bool:
+    """Whether an address is asking for the authored Rifle Club replay.
+
+    The demo needs captured origin and route geometry to remain internally
+    consistent with its authored closures. Other Spokane addresses must not be
+    silently snapped to that origin; they continue through live geocoding and
+    routing when ``EVAC_LIVE_LOCATION_IN_REPLAY`` is enabled.
+    """
+    normalized = " ".join((query or "").lower().replace("-", " ").split())
+    return "rifle club" in normalized
+
+
 def clear_cache() -> None:
     _manifest.cache_clear()
     _load.cache_clear()

@@ -73,6 +73,20 @@ def init() -> None:
         conn.executescript(_SCHEMA)
 
 
+def purge_all() -> dict[str, int]:
+    """Delete prototype session data and return auditable row counts."""
+    with _lock, _connect() as conn:
+        counts = {
+            table: int(conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+            for table in ("sessions", "steps", "snapshots")
+        }
+        # Child-like records first, even though this prototype has no FK rules.
+        conn.execute("DELETE FROM steps")
+        conn.execute("DELETE FROM snapshots")
+        conn.execute("DELETE FROM sessions")
+    return counts
+
+
 def save_session(session_id: str, created_at: str, updated_at: str, state: dict[str, Any]) -> None:
     with _lock, _connect() as conn:
         conn.execute(

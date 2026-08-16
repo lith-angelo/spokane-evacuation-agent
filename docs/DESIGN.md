@@ -88,7 +88,7 @@ FastAPI  app/main.py  ──────────────► app/agent.py
                  OpenShell L7 proxy   ← enforces policies/spokane-evac.yaml
                         │
         services3.arcgis.com · protect.genasys.com · data.wsdot.wa.gov
-        gismo.spokanecounty.org · nominatim.openstreetmap.org · router.project-osrm.org
+        nominatim.openstreetmap.org · router.project-osrm.org · api.mapbox.com
 ```
 
 The FastAPI process runs on the host; its outbound calls are funnelled through
@@ -106,7 +106,6 @@ Everything under `app/` except `config.py` is still to be written.
 | `models.py` | Pydantic records + the provenance envelope | See §5 |
 | `sources/wfigs.py` | NIFC incident locations + perimeters | `services3.arcgis.com/T4QMspbfLg3qTGWY/...` |
 | `sources/genasys.py` | Evacuation zones and Level 1/2/3 | `protect.genasys.com/api/**` |
-| `sources/spokane_gis.py` | County zones, districts, facilities, local closures | `gismo.spokanecounty.org/arcgis/rest/**` |
 | `sources/wsdot.py` | State highway closures and alerts | `data.wsdot.wa.gov/arcgis/rest/**` |
 | `sources/nominatim.py` | Landmark/address → coordinates | 1 req/s, identifying User-Agent required |
 | `sources/osrm.py` | Candidate routes with alternatives | Demo server, no SLA |
@@ -231,7 +230,7 @@ Each was a real fork. What the M0 probing actually found is in
 | # | Decision | Outcome |
 |---|---|---|
 | 1 | SREC vs. Genasys for evacuation zones | **SREC.** Genasys serves an SPA at every `/api/**` route probed and was *removed* from the policy. SREC's org path was added. |
-| 2 | Spokane county GIS host | **`gismo.spokanecounty.org`** is correct, but it carries no evacuation layer — only `AreasOfDistinction` / `PointsOfDistinction`. |
+| 2 | Spokane county GIS host | **`gismo.spokanecounty.org`** is correct, but it carries no evacuation layer and the runtime does not call it, so the policy grant was removed. |
 | 3 | Narrow the Genasys `/api/**` grant | Moot; the host is gone from the allowlist. |
 | 4 | OSRM has no SLA and no closure knowledge | Confirmed. Closures are applied as a post-filter in `safety.validate_route`. A rejected route is an honest outcome. |
 | 5 | Live vs. replay default | **Replay**, with a live toggle. See DEMO.md for why both are worth showing. |

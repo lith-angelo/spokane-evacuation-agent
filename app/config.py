@@ -30,12 +30,21 @@ class Settings:
     inference_model: str = os.getenv("EVAC_INFERENCE_MODEL", "nvidia/Qwen3.6-35B-A3B-NVFP4")
     inference_api_key: str = os.getenv("EVAC_INFERENCE_API_KEY", "not-needed")
 
+    # Optional live location/navigation provider.  In replay mode the hazard
+    # feeds remain fixture-backed, while Mapbox may still resolve the resident
+    # and calculate routes from the address they actually entered.
+    mapbox_access_token: str = os.getenv("MAPBOX_ACCESS_TOKEN", "")
+    location_provider: str = os.getenv("EVAC_LOCATION_PROVIDER", "nominatim")
+    route_provider: str = os.getenv("EVAC_ROUTE_PROVIDER", "osrm")
+    live_location_in_replay: bool = _bool("EVAC_LIVE_LOCATION_IN_REPLAY", False)
+
     sandbox: str = os.getenv("EVAC_SANDBOX", "my-assistant")
     openshell_bin: str = os.getenv(
         "EVAC_OPENSHELL_BIN", str(Path.home() / ".local/bin/openshell")
     )
     nemoclaw_bin: str = os.getenv("EVAC_NEMOCLAW_BIN", str(Path.home() / ".local/bin/nemoclaw"))
     egress_concurrency: int = int(os.getenv("EVAC_EGRESS_CONCURRENCY", "8"))
+    inside_openshell: bool = _bool("EVAC_INSIDE_OPENSHELL", False)
 
     # A policy denial must never fall back to host-direct. This flag only covers
     # the case where the sandbox itself is unreachable.
@@ -43,6 +52,7 @@ class Settings:
 
     data_mode: str = os.getenv("EVAC_DATA_MODE", "replay")  # live | replay
     db_path: Path = Path(os.getenv("EVAC_DB_PATH", str(REPO_ROOT / "data/sessions.sqlite3")))
+    purge_demo_data_on_start: bool = _bool("EVAC_PURGE_DEMO_DATA_ON_START", True)
 
     user_agent: str = "spokane-evac-agent/0.1 (Spark Hack Seattle prototype)"
 
@@ -61,9 +71,9 @@ ALLOWED_HOSTS: frozenset[str] = frozenset(
     {
         "services3.arcgis.com",
         "data.wsdot.wa.gov",
-        "gismo.spokanecounty.org",
         "nominatim.openstreetmap.org",
         "router.project-osrm.org",
+        "api.mapbox.com",
     }
 )
 

@@ -38,6 +38,10 @@ export default function App() {
   const { mode, resolved, cycle } = useTheme()
   const [health, setHealth] = useState(null)
   const [query, setQuery] = useState(PRESET.query)
+  const [locationResolved, setLocationResolved] = useState(true)
+  const [suggestions, setSuggestions] = useState([])
+  const [geocodeStatus, setGeocodeStatus] = useState('')
+  const skipGeocode = useRef(false)
   const [needs, setNeeds] = useState(PRESET.needs)
   const [state, setState] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -49,6 +53,50 @@ export default function App() {
   useEffect(() => {
     api('/api/health').then(setHealth).catch(() => setHealth(null))
   }, [])
+
+  useEffect(() => {
+    if (skipGeocode.current) {
+      skipGeocode.current = false
+      return undefined
+    }
+    const address = query.trim()
+    if (address.length < 3 || locationResolved) {
+      setSuggestions([])
+      setGeocodeStatus('')
+      return undefined
+    }
+
+    let active = true
+    setGeocodeStatus('Searching…')
+    const timer = window.setTimeout(() => {
+      api(`/api/geocode?q=${encodeURIComponent(address)}`)
+        .then((data) => {
+          if (!active) return
+          const results = data.results || []
+          setSuggestions(results)
+          setGeocodeStatus(results.length ? '' : 'No Spokane-area address found')
+        })
+        .catch(() => {
+          if (!active) return
+          setSuggestions([])
+          setGeocodeStatus('Address search unavailable')
+        })
+    }, 500)
+
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+    }
+  }, [query, locationResolved])
+
+  const chooseLocation = (place) => {
+    skipGeocode.current = true
+    setQuery(place.label)
+    setLocationResolved(true)
+    setSuggestions([])
+    setGeocodeStatus('')
+    setState(null)
+  }
 
   useEffect(() => {
     if (!state?.session_id) return
@@ -83,6 +131,7 @@ export default function App() {
 
   const run = () =>
     act('Planning', async () => {
+      setSuggestions([])
       const result = await api('/api/plan', {
         method: 'POST',
         body: JSON.stringify({
@@ -192,21 +241,52 @@ export default function App() {
         </AnimatePresence>
       </header>
 
+      <div className="demo-safety-notice" role="note">
+        <strong>Hackathon prototype.</strong> Use synthetic household and contact data only.
+        No real alerts or messages are sent; this is not 911 or certified navigation.
+      </div>
+
       <div className="main">
         <div className="rail">
-          <Panel title="Resident">
+          <Panel title="Resident" className="resident-panel">
             <div className="body">
               <label className="field-label t-caption" htmlFor="loc">
                 Location — landmark or address
               </label>
-              <input
-                id="loc"
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !busy && query.trim() && run()}
-                placeholder="e.g. Rifle Club Road, Spokane County"
-              />
+              <div className="location-search">
+                <input
+                  id="loc"
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value)
+                    setLocationResolved(false)
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && !busy && query.trim() && run()}
+                  placeholder="e.g. Rifle Club Road, Spokane County"
+                  autoComplete="off"
+                  aria-expanded={suggestions.length > 0}
+                  aria-controls="location-suggestions"
+                />
+                {suggestions.length > 0 && (
+                  <div id="location-suggestions" className="location-results" role="listbox">
+                    {suggestions.map((place) => (
+                      <button
+                        type="button"
+                        key={place.id}
+                        role="option"
+                        onClick={() => chooseLocation(place)}
+                      >
+                        <span>{place.label}</span>
+                        <small>{place.lat.toFixed(4)}, {place.lon.toFixed(4)}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {!locationResolved && geocodeStatus && (
+                <div className="location-status t-caption">{geocodeStatus}</div>
+              )}
 
               <div className="needs">
                 {Object.entries(NEED_LABELS).map(([key, label]) => (

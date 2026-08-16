@@ -146,11 +146,11 @@
      4.02 and 3.65, so neither survives as a filled-button background here. */
   --btn-primary-bg: linear-gradient(
     180deg,
-    light-dark(#0f75de, #0f74d0) 0%,
-    light-dark(#0062cc, #0a6ccc) 100%
+    light-dark(#2c2c2e, #242426) 0%,
+    #000000 100%
   );
-  --btn-primary-shadow: 0 1px 2px light-dark(rgba(0, 90, 200, 0.28), rgba(0, 0, 0, 0.4)),
-    inset 0 1px 0 light-dark(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.22));
+  --btn-primary-shadow: 0 1px 2px light-dark(rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.55)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 
   --shadow-sm: 0 1px 2px light-dark(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.4)),
     0 0 0 0.5px light-dark(rgba(0, 0, 0, 0.03), transparent);
@@ -317,6 +317,23 @@ button:disabled {
 .spacer {
   flex: 1;
   min-width: var(--space-2);
+}
+
+.demo-safety-notice {
+  position: relative;
+  z-index: 39;
+  padding: 0.42rem var(--space-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--warning) 28%, var(--hairline));
+  background: color-mix(in srgb, var(--warning) 8%, var(--surface-1));
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.demo-safety-notice strong {
+  color: var(--warning);
+  font-weight: 650;
 }
 
 /* ---------- chips ---------- */
@@ -540,6 +557,12 @@ button:disabled {
   padding: var(--space-3);
 }
 
+.panel.resident-panel {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
 /* ---------- form ---------- */
 
 .field-label {
@@ -573,6 +596,58 @@ input[type='text']::placeholder {
   color: var(--text-quaternary);
 }
 
+.location-search {
+  position: relative;
+}
+
+.location-results {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-md);
+  background: var(--material-heavy);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: var(--shadow-lg);
+}
+
+.location-results button {
+  display: grid;
+  gap: 0.12rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.location-results button:last-child {
+  border-bottom: 0;
+}
+
+.location-results button:hover,
+.location-results button:focus-visible {
+  outline: none;
+  background: var(--surface-3);
+}
+
+.location-results small,
+.location-status {
+  color: var(--text-tertiary);
+}
+
+.location-status {
+  margin-top: 0.35rem;
+}
+
 .needs {
   display: flex;
   flex-wrap: wrap;
@@ -604,14 +679,14 @@ input[type='text']::placeholder {
 }
 
 .need.on {
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-  background: var(--accent-dim);
+  border-color: var(--text);
+  background: var(--text);
   box-shadow: none;
-  color: var(--text);
+  color: var(--surface-1);
 }
 
 .need input {
-  accent-color: var(--accent);
+  accent-color: var(--text);
   margin: 0;
   cursor: pointer;
 }

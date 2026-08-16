@@ -181,3 +181,15 @@ class TestStatusSentinel:
 
         _, status = _split_status("\n__EVAC_HTTP__:000")
         assert status is None
+
+
+class TestCredentialRedaction:
+    def test_sensitive_query_values_are_removed_from_recorded_urls(self):
+        from app.egress import _redact_url
+
+        safe = _redact_url(
+            "https://api.mapbox.com/search?q=Spokane&access_token=pk.example&limit=1"
+        )
+        assert "pk.example" not in safe
+        assert "access_token=[REDACTED]" in safe
+        assert "q=Spokane" in safe

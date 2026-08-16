@@ -26,7 +26,9 @@ from app.models import (
 )
 from app.safety import HazardContext, can_return_home, filter_shelters, validate_all
 from app.session import EvacuationSession
-from app.sources import firecam, nominatim, osrm, srec, wfigs, wsdot
+from app.config import settings
+from app import replay
+from app.sources import firecam, mapbox, nominatim, osrm, srec, wfigs, wsdot
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
     {
@@ -212,8 +214,21 @@ async def geocode(session: EvacuationSession, query: str | None = None) -> dict[
     if not q:
         return {"error": "no location given"}
 
-    place, result = await nominatim.geocode(q)
-    session.record_source(_status(SourceId.NOMINATIM, result, 1 if place else 0))
+    # Keep the authored demo internally consistent: its closure geometry and
+    # captured route alternatives were built from the replayed Rifle Club
+    # origin. Every other address remains live and is never snapped there.
+    scenario_replay = settings.replay and replay.is_scenario_query(q)
+    use_mapbox = (
+        settings.location_provider.strip().lower() == "mapbox"
+        and not scenario_replay
+    )
+    if use_mapbox:
+        place, result = await mapbox.geocode(q)
+        source_id = SourceId.MAPBOX
+    else:
+        place, result = await nominatim.geocode(q)
+        source_id = SourceId.NOMINATIM
+    session.record_source(_status(source_id, result, 1 if place else 0))
 
     if place is None:
         return {
@@ -227,7 +242,7 @@ async def geocode(session: EvacuationSession, query: str | None = None) -> dict[
         "lat": place.lat,
         "lon": place.lon,
         "label": place.label,
-        "source": "NOMINATIM",
+        "source": source_id.value,
         "data_class": "replay" if result.outcome is Outcome.REPLAY else "official",
     }
 
@@ -445,11 +460,26 @@ async def plan_safe_route(
 
     session.destination = target
 
-    routes, rres = await osrm.plan_routes(
-        (session.place.lat, session.place.lon), (target.lat, target.lon)
-    )
+    scenario_replay = settings.replay and replay.is_scenario_query(session.query)
+    use_mapbox = settings.route_provider.strip().lower() == "mapbox"
+    if use_mapbox:
+        routes, rres = await mapbox.plan_routes(
+            (session.place.lat, session.place.lon), (target.lat, target.lon)
+        )
+        route_source = SourceId.MAPBOX
+    else:
+        routes, rres = await osrm.plan_routes(
+            (session.place.lat, session.place.lon),
+            (target.lat, target.lon),
+            bypass_replay=(
+                settings.replay
+                and settings.live_location_in_replay
+                and not scenario_replay
+            ),
+        )
+        route_source = SourceId.OSRM
     session.routes = routes
-    session.record_source(_status(SourceId.OSRM, rres, len(routes)))
+    session.record_source(_status(route_source, rres, len(routes)))
 
     return {
         "destination": target.name,

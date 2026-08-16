@@ -26,6 +26,7 @@ async def plan_routes(
     destination: tuple[float, float],
     *,
     alternatives: int = 3,
+    bypass_replay: bool = False,
 ) -> tuple[list[RouteCandidate], EgressResult]:
     """Candidate routes from origin to destination, both (lat, lon).
 
@@ -46,6 +47,7 @@ async def plan_routes(
             "alternatives": str(alternatives),
             "steps": "false",
         },
+        bypass_replay=bypass_replay,
     )
     if not result.ok:
         return [], result

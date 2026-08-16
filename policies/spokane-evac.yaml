@@ -49,15 +49,6 @@ network_policies:
           - allow: { method: GET, path: "/arcgis/rest/**" }
           - allow: { method: HEAD, path: "/arcgis/rest/**" }
 
-      # Spokane County GIS — local evacuation zones, districts, facilities.
-      - host: gismo.spokanecounty.org
-        port: 443
-        protocol: rest
-        enforcement: enforce
-        rules:
-          - allow: { method: GET, path: "/arcgis/rest/**" }
-          - allow: { method: HEAD, path: "/arcgis/rest/**" }
-
       # Nominatim geocoding, so a landmark can be entered with no hardcoded coords.
       - host: nominatim.openstreetmap.org
         port: 443
@@ -84,9 +75,18 @@ network_policies:
           - allow: { method: GET, path: "/nearest/v1/**" }
           - allow: { method: GET, path: "/match/v1/**" }
 
+      # Mapbox temporary geocoding. The public access token is
+      # supplied at runtime and never committed to this policy or repository.
+      - host: api.mapbox.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/search/geocode/v6/**" }
+          - allow: { method: HEAD, path: "/search/geocode/v6/**" }
+
     # Verified present in this sandbox image. python3 uses a glob because the
     # enforcer reports the resolved interpreter path (/usr/bin/python3.13).
     binaries:
       - { path: /usr/bin/curl }
       - { path: /usr/bin/python3* }
-      - { path: /usr/local/bin/node }

@@ -10,14 +10,18 @@ Then it keeps working. When a road closes, the monitor notices on its own,
 invalidates the route it recommended, replans, and prepares a notification —
 with no user message anywhere in that sequence.
 
-It runs inside a NemoClaw/OpenShell sandbox where egress is **deny-by-default**.
+The submitted runtime runs inside a NemoClaw/OpenShell sandbox where egress is
+**deny-by-default**. Host execution remains a development option and is labelled
+as not fully contained unless the health probe observes the policy boundary.
 The complete list of hosts it may reach is `policies/spokane-evac.yaml`, GET/HEAD
 only. Everything else fails closed with a real 403 from the L7 proxy, which the
 agent surfaces as a blocked action rather than hiding.
 
 **This is a prototype for Spark Hack Seattle.** It is not 911, not an official
 evacuation order, and not certified navigation. Verify with official sources
-before acting.
+before acting. Enter synthetic household/contact data only. Replay-mode session
+data is cleared whenever the process starts, and notification delivery is
+simulated.
 
 ## Quick start
 
@@ -66,8 +70,9 @@ failure branch anywhere in it.
 browser (web/, React + Leaflet)
         │  HTTP + SSE step trace
         ▼
-FastAPI  app/main.py ───────► app/agent.py ── OpenAI-compatible ──► local NIM (GN100)
-  /api/plan  /api/stream            │                nvidia/Qwen3.6-35B-A3B-NVFP4
+NemoClaw/OpenShell sandbox
+  FastAPI app/main.py ──────► app/agent.py ── OpenAI-compatible ──► local NIM (GN100)
+  /api/plan  /api/stream            │                NVIDIA Nemotron 3.5 Lightning
   /api/health /api/session          │ tool calls
                                     ▼
                               app/tools.py ──► app/monitor.py  (always-on loop)
@@ -80,22 +85,26 @@ FastAPI  app/main.py ───────► app/agent.py ── OpenAI-compati
               ▼
         app/egress.py   ← the only module that touches the network
               │
-     nemoclaw <sandbox> exec -- curl …
+       direct child curl (still inside the sandbox)
               │
        OpenShell L7 proxy   ← enforces policies/spokane-evac.yaml
               │
    services3.arcgis.com (NIFC WFIGS · SREC) · data.wsdot.wa.gov
-   gismo.spokanecounty.org · nominatim.openstreetmap.org · router.project-osrm.org
+   · nominatim.openstreetmap.org · router.project-osrm.org
+   · api.mapbox.com (optional live location)
 ```
 
 `EVAC_DATA_MODE=replay` serves fixtures **at the egress layer**, so every parser,
 geometry operation and safety gate above it runs the same code it runs live.
+With `EVAC_LIVE_LOCATION_IN_REPLAY=1`, Mapbox geocoding and OSRM routing may run
+live for non-scenario addresses while hazard feeds remain fixture-backed for a
+deterministic demo.
 
 ## Data sources
 
 NIFC WFIGS (incidents, perimeters) · SREC (evacuation zones, shelters, local
-closures) · WSDOT (highway closures) · Spokane County GIS · Nominatim
-(geocoding) · OSRM (routing). Verified URL shapes, the two distinct policy-denial
+closures) · WSDOT (highway closures) · Mapbox or Nominatim (geocoding) · OSRM
+(routing). Verified URL shapes, the two distinct policy-denial
 signatures, and two proxy quirks that constrain URL construction are in
 [docs/SOURCES.md](docs/SOURCES.md).
 
@@ -115,7 +124,7 @@ cannot use would have made the allowlist dishonest.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest -q            # 64 tests, no network, no sandbox
+.venv/bin/python -m pytest -q            # 72 tests, no network, no sandbox
 .venv/bin/python scripts/verify_demo.py  # end-to-end against a running server
 ```
 

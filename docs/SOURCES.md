@@ -95,7 +95,8 @@ SREC zone published is a real, reportable conflict — and under DESIGN §7.2
 ### DESIGN §9.2 — county GIS host
 
 `gismo.spokanecounty.org` is correct and reachable; `services.spokanegis.org` was
-not needed. Kept in the policy for `SiteAddressPoints` and boundary context.
+not needed. It is not called by the seven-tool runtime, so it was removed from
+the submitted runtime policy instead of retaining an unused standing grant.
 
 ### DESIGN §9.6 — weather/AQI
 

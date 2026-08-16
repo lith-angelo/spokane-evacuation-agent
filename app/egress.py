@@ -37,6 +37,14 @@ _CURL_ERROR_LINE = re.compile(r"curl: \(\d+\)[^\n]*")
 _L7_DENIAL_MARKER = '"error":"policy_denied"'
 
 _STATUS_SENTINEL = "\n__EVAC_HTTP__:"
+_SENSITIVE_QUERY_VALUE = re.compile(
+    r"([?&](?:access_token|api_key|key|token)=)[^&#]*", re.I
+)
+
+
+def _redact_url(url: str) -> str:
+    """Return a log/persistence-safe URL without changing the real request."""
+    return _SENSITIVE_QUERY_VALUE.sub(r"\1[REDACTED]", url)
 
 
 class Outcome(str, Enum):
@@ -141,6 +149,7 @@ class Egress:
         method: str = "GET",
         timeout: float = 30.0,
         policy_probe: bool = False,
+        bypass_replay: bool = False,
     ) -> EgressResult:
         """Fetch `url` through the sandbox.
 
@@ -159,16 +168,17 @@ class Egress:
         # Replay serves recorded bytes, but never for a policy probe: the
         # containment demonstration must be a real refusal from OpenShell in
         # every mode. A fixture that said "blocked" would prove nothing.
-        if settings.replay and not policy_probe:
+        if settings.replay and not policy_probe and not bypass_replay:
             from app import replay
 
             fixture = replay.lookup(url)
             if fixture is not None:
+                fixture.url = _redact_url(fixture.url)
                 return fixture
             # No fixture is a coverage gap, not an empty success.
             return EgressResult(
                 outcome=Outcome.UPSTREAM_ERROR,
-                url=url,
+                url=_redact_url(url),
                 host=host,
                 error=f"no replay fixture for {host}{path}",
             )
@@ -179,7 +189,7 @@ class Egress:
         if host not in ALLOWED_HOSTS and not policy_probe:
             return EgressResult(
                 outcome=Outcome.POLICY_DENIED,
-                url=url,
+                url=_redact_url(url),
                 host=host,
                 denial=Denial(
                     host=host,
@@ -222,7 +232,14 @@ class Egress:
             url,
         ]
 
-        if shutil.which(settings.nemoclaw_bin) or _exists(settings.nemoclaw_bin):
+        if settings.inside_openshell:
+            # The complete harness is already executing inside the OpenShell
+            # sandbox. A direct child process remains inside that boundary and
+            # is governed by the active binary/host/path/method policy. Calling
+            # NemoClaw again here would attempt to nest one sandbox in another.
+            argv = curl
+            sandboxed = True
+        elif shutil.which(settings.nemoclaw_bin) or _exists(settings.nemoclaw_bin):
             argv = [settings.nemoclaw_bin, settings.sandbox, "exec", "--", *curl]
             sandboxed = True
         elif settings.allow_host_direct_fallback and host in ALLOWED_HOSTS:
@@ -235,7 +252,7 @@ class Egress:
         else:
             return EgressResult(
                 outcome=Outcome.SANDBOX_UNAVAILABLE,
-                url=url,
+                url=_redact_url(url),
                 host=host,
                 error=f"nemoclaw not found at {settings.nemoclaw_bin}",
             )
@@ -252,7 +269,7 @@ class Egress:
         except asyncio.TimeoutError:
             return EgressResult(
                 outcome=Outcome.UPSTREAM_ERROR,
-                url=url,
+                url=_redact_url(url),
                 host=host,
                 error=f"timed out after {timeout}s",
                 elapsed_ms=int((time.monotonic() - started) * 1000),
@@ -260,7 +277,7 @@ class Egress:
         except (OSError, FileNotFoundError) as exc:
             return EgressResult(
                 outcome=Outcome.SANDBOX_UNAVAILABLE,
-                url=url,
+                url=_redact_url(url),
                 host=host,
                 error=str(exc),
                 elapsed_ms=int((time.monotonic() - started) * 1000),
@@ -274,7 +291,7 @@ class Egress:
         body, status = _split_status(stdout)
 
         return classify(
-            url=url,
+            url=_redact_url(url),
             host=host,
             path=path,
             method=method,

@@ -42,6 +42,7 @@ class SourceId(str, Enum):
     WSDOT_EOC = "WSDOT_EOC"
     NOMINATIM = "NOMINATIM"
     OSRM = "OSRM"
+    MAPBOX = "MAPBOX"
     FIRECAM = "FIRECAM"
     DERIVED = "DERIVED"
 
@@ -60,6 +61,7 @@ AUTHORITY_TIER: dict[SourceId, int] = {
     SourceId.DERIVED: 2,
     SourceId.NOMINATIM: 3,
     SourceId.OSRM: 3,
+    SourceId.MAPBOX: 3,
     SourceId.FIRECAM: 3,
 }
 

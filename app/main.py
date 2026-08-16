@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +25,7 @@ from app.config import REPO_ROOT, settings
 from app.egress import Outcome, egress
 from app.models import HouseholdNeeds, StepKind
 from app.session import EvacuationSession, registry
+from app.sources import mapbox
 
 WEB_DIST = REPO_ROOT / "web" / "dist"
 
@@ -32,6 +33,8 @@ WEB_DIST = REPO_ROOT / "web" / "dist"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     store.init()
+    if settings.replay and settings.purge_demo_data_on_start:
+        store.purge_all()
     yield
     for s in registry.all():
         await monitor.supervisor.stop(s.session_id)
@@ -114,6 +117,15 @@ async def health() -> dict[str, Any]:
             "base_url": settings.inference_base_url,
             "detail": nim_detail,
         },
+        "privacy": {
+            "synthetic_only": settings.replay,
+            "delivery": "simulated",
+            "retention": (
+                "cleared on process start"
+                if settings.replay and settings.purge_demo_data_on_start
+                else "persistent prototype storage"
+            ),
+        },
         "snapshots": store.snapshot_count(),
     }
 
@@ -125,6 +137,31 @@ async def scenario() -> dict[str, Any]:
         "replay": settings.replay,
         "phase": replay.get_phase(),
         "scenario": replay.scenario_meta() if settings.replay else None,
+    }
+
+
+@app.get("/api/geocode")
+async def geocode_suggestions(
+    q: str = Query(min_length=3, max_length=120),
+) -> dict[str, Any]:
+    """Debounced address suggestions for the resident input.
+
+    Results are temporary Mapbox lookups and are constrained to the product's
+    Spokane County service area by the same source adapter used by the agent.
+    """
+    places, result = await mapbox.search(" ".join(q.split()), limit=5)
+    if not result.ok:
+        raise HTTPException(status_code=502, detail=result.error or "address search unavailable")
+    return {
+        "results": [
+            {
+                "id": place.record.record_id,
+                "label": place.label,
+                "lat": place.lat,
+                "lon": place.lon,
+            }
+            for place in places
+        ]
     }
 
 
