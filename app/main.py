@@ -11,7 +11,7 @@ import asyncio
 import json
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +19,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import monitor, replay, store, tools
+from app import monitor, replay, runtime, store, tools
 from app.agent import agent
 from app.config import REPO_ROOT, settings
 from app.egress import Outcome, egress
@@ -34,7 +34,7 @@ WEB_DIST = REPO_ROOT / "web" / "dist"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     store.init()
-    if settings.replay and settings.purge_demo_data_on_start:
+    if runtime.is_replay() and settings.purge_demo_data_on_start:
         store.purge_all()
     yield
     await agent.shutdown()
@@ -67,6 +67,10 @@ class MessageRequest(BaseModel):
     message: str
 
 
+class ModeRequest(BaseModel):
+    mode: Literal["live", "replay"]
+
+
 # --- endpoints ---------------------------------------------------------------
 
 
@@ -77,7 +81,7 @@ async def health() -> dict[str, Any]:
     sandbox_detail = "not probed"
     policy_enforced = False
 
-    if not settings.replay:
+    if not runtime.is_replay():
         probe = await egress.fetch(
             "https://nominatim.openstreetmap.org/status.php", timeout=10.0
         )
@@ -92,7 +96,7 @@ async def health() -> dict[str, Any]:
         timeout=10.0,
     )
     policy_enforced = denial.outcome is Outcome.POLICY_DENIED
-    if settings.replay:
+    if runtime.is_replay():
         sandbox_ok = policy_enforced
         sandbox_detail = "probed via policy denial"
 
@@ -106,9 +110,9 @@ async def health() -> dict[str, Any]:
         nim_detail = str(exc)[:200]
 
     return {
-        "mode": settings.data_mode,
-        "replay": settings.replay,
-        "scenario": replay.scenario_meta() if settings.replay else None,
+        "mode": runtime.data_mode(),
+        "replay": runtime.is_replay(),
+        "scenario": replay.scenario_meta() if runtime.is_replay() else None,
         "phase": replay.get_phase(),
         "sandbox": {"ok": sandbox_ok, "detail": sandbox_detail, "name": settings.sandbox},
         "policy_enforced": policy_enforced,
@@ -121,11 +125,11 @@ async def health() -> dict[str, Any]:
         },
         "skill_memory": route_skill.status(),
         "privacy": {
-            "synthetic_only": settings.replay,
+            "synthetic_only": runtime.is_replay(),
             "delivery": "simulated",
             "retention": (
                 "cleared on process start"
-                if settings.replay and settings.purge_demo_data_on_start
+                if runtime.is_replay() and settings.purge_demo_data_on_start
                 else "persistent prototype storage"
             ),
         },
@@ -136,10 +140,37 @@ async def health() -> dict[str, Any]:
 @app.get("/api/scenario")
 async def scenario() -> dict[str, Any]:
     return {
-        "mode": settings.data_mode,
-        "replay": settings.replay,
+        "mode": runtime.data_mode(),
+        "replay": runtime.is_replay(),
         "phase": replay.get_phase(),
-        "scenario": replay.scenario_meta() if settings.replay else None,
+        "scenario": replay.scenario_meta() if runtime.is_replay() else None,
+    }
+
+
+@app.post("/api/mode")
+async def change_mode(req: ModeRequest) -> dict[str, Any]:
+    """Switch data mode atomically and discard plans from the previous world."""
+    async with registry.lock:
+        previous = runtime.data_mode()
+        if previous != req.mode:
+            await agent.cancel_reflections()
+            for session in registry.all():
+                await monitor.supervisor.stop(session.session_id)
+            cleared_sessions = registry.clear()
+            purged = store.purge_all()
+            runtime.set_data_mode(req.mode)
+            replay.set_phase("before")
+            replay.clear_cache()
+        else:
+            cleared_sessions = 0
+            purged = {"sessions": 0, "steps": 0, "snapshots": 0}
+    return {
+        "previous_mode": previous,
+        "mode": runtime.data_mode(),
+        "replay": runtime.is_replay(),
+        "scenario": replay.scenario_meta() if runtime.is_replay() else None,
+        "cleared_sessions": cleared_sessions,
+        "purged": purged,
     }
 
 
@@ -170,28 +201,35 @@ async def geocode_suggestions(
 
 @app.post("/api/plan")
 async def plan(req: PlanRequest) -> dict[str, Any]:
-    session = registry.get(req.session_id) if req.session_id else None
-    if session is None:
-        session = registry.create()
+    async with registry.lock:
+        session = registry.get(req.session_id) if req.session_id else None
+        if session is not None and (
+            session.query != req.query or session.needs != req.needs
+        ):
+            await monitor.supervisor.stop(session.session_id)
+            session = None
+        if session is None:
+            session = registry.create()
 
-    session.query = req.query
-    session.needs = req.needs
-    session.approved_contacts = list(req.approved_contacts)
+        session.query = req.query
+        session.needs = req.needs
+        session.approved_contacts = list(req.approved_contacts)
 
-    message = req.message or (
-        f"I'm near {req.query}. My household has {req.needs.describe()}. "
-        "Do I need to leave, and where should I go?"
-    )
+        message = req.message or (
+            f"I'm near {req.query}. My household has {req.needs.describe()}. "
+            "Do I need to leave, and where should I go?"
+        )
 
-    await agent.run(session, message)
-    return session.snapshot()
+        await agent.run(session, message)
+        return session.snapshot()
 
 
 @app.post("/api/session/{session_id}/message")
 async def message(session_id: str, req: MessageRequest) -> dict[str, Any]:
-    session = _require(session_id)
-    await agent.run(session, req.message)
-    return session.snapshot()
+    async with registry.lock:
+        session = _require(session_id)
+        await agent.run(session, req.message)
+        return session.snapshot()
 
 
 @app.get("/api/session/{session_id}")
@@ -256,7 +294,7 @@ async def trigger_closure() -> dict[str, Any]:
     monitor still has to fetch, diff and decide on its own — which is why the
     replan that follows is a real recalculation.
     """
-    if not settings.replay:
+    if not runtime.is_replay():
         raise HTTPException(
             400,
             "The simulated closure only exists in replay mode. In live mode the "

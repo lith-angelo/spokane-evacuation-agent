@@ -243,6 +243,11 @@ class SessionRegistry:
     def all(self) -> list[EvacuationSession]:
         return list(self._sessions.values())
 
+    def clear(self) -> int:
+        count = len(self._sessions)
+        self._sessions.clear()
+        return count
+
     @property
     def lock(self) -> asyncio.Lock:
         return self._lock

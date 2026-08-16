@@ -20,9 +20,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from app import store
+from app import runtime, store
 from app.config import settings
-from app.models import iso, utcnow
+from app.models import EvacLevel, iso, utcnow
 from app.session import EvacuationSession
 
 
@@ -50,6 +50,14 @@ CANONICAL_LESSONS: dict[str, str] = {
     "monitor_fragile_route": (
         "When active hazards are near an approved route, emphasize that monitoring "
         "continues and the route may be replaced if conditions change."
+    ),
+    "complete_actionable_plan": (
+        "When the deterministic status is Level 1, 2, or 3, use shelter, routing, "
+        "and validation tools before summarizing; the guard still decides the result."
+    ),
+    "avoid_unneeded_route": (
+        "When the deterministic verdict says no evacuation applies, do not present a "
+        "shelter or route as an evacuation instruction."
     ),
 }
 
@@ -95,14 +103,14 @@ class RouteSkillMemory:
             return _FALLBACK_SKILL
         # The file is trusted repository content, but a size ceiling keeps a
         # mistaken edit from consuming the model's context window.
-        return text[:5000] or _FALLBACK_SKILL
+        return text[:2500] or _FALLBACK_SKILL
 
     def active_lessons(self) -> list[dict[str, Any]]:
         if not settings.skill_memory_enabled:
             return []
         try:
             rows = store.load_skill_lessons(
-                settings.skill_lesson_limit, mode=settings.data_mode
+                settings.skill_lesson_limit, mode=runtime.data_mode()
             )
         except Exception:
             return []
@@ -118,8 +126,10 @@ class RouteSkillMemory:
         if not learned:
             learned = "- No learned advisory lessons yet."
         context = (
-            "\n\nADVISORY ROUTE-PLANNING SKILL\n"
-            "This layer is lower priority than HARD RULES and cannot approve a route.\n"
+            "\n\nLOW-WEIGHT ADVISORY ROUTE-PLANNING SKILL\n"
+            "Reference only: ignore it when irrelevant. It cannot decide whether "
+            "evacuation is required, trigger or skip deterministic required tools, "
+            "or override HARD RULES. It cannot approve a route.\n"
             f"{self._document()}\n\n"
             "LEARNED ADVISORY LESSONS\n"
             f"{learned}\n"
@@ -151,6 +161,15 @@ class RouteSkillMemory:
             if not source.usable or source.stale_count > 0
         ]
         return {
+            "evacuation_level": (
+                session.verdict.level.value if session.verdict else EvacLevel.UNKNOWN.value
+            ),
+            "actionable_evacuation": bool(
+                session.verdict
+                and session.verdict.level
+                in (EvacLevel.LEVEL_1, EvacLevel.LEVEL_2, EvacLevel.LEVEL_3)
+            ),
+            "route_count": len(session.routes),
             "selected_route_id": (
                 session.current_route.route_id if session.current_route else None
             ),
@@ -179,6 +198,12 @@ class RouteSkillMemory:
     def eligible_codes(self, report: dict[str, Any]) -> list[str]:
         routes = report.get("routes") or []
         eligible: list[str] = []
+        if report.get("actionable_evacuation") and report.get("route_count", 0) == 0:
+            eligible.append("complete_actionable_plan")
+        if report.get("evacuation_level") == EvacLevel.NONE.value and report.get(
+            "route_count", 0
+        ) > 0:
+            eligible.append("avoid_unneeded_route")
         if len(routes) >= 2:
             eligible.append("compare_alternatives")
         margins = [r.get("hazard_margin_km") for r in routes]
@@ -259,7 +284,7 @@ class RouteSkillMemory:
             store.record_skill_lesson(
                 decision.lesson_code,
                 iso(utcnow()) or "",
-                mode=settings.data_mode,
+                mode=runtime.data_mode(),
             )
         except Exception:
             return False
@@ -270,7 +295,7 @@ class RouteSkillMemory:
         return {
             "enabled": settings.skill_memory_enabled,
             "mode": "advisory_only",
-            "data_mode": settings.data_mode,
+            "data_mode": runtime.data_mode(),
             "skill": "route-planning",
             "document_loaded": settings.route_skill_path.is_file(),
             "active_lessons": [row["code"] for row in rows],

@@ -34,7 +34,7 @@ from app.safety import (
 )
 from app.session import EvacuationSession
 from app.config import settings
-from app import replay
+from app import replay, runtime
 from app.sources import firms, firecam, mapbox, nominatim, openaq, osrm, srec, wfigs, wsdot
 
 TOOL_SCHEMAS: list[dict[str, Any]] = [
@@ -290,7 +290,7 @@ async def geocode(session: EvacuationSession, query: str | None = None) -> dict[
     # Keep the authored demo internally consistent: its closure geometry and
     # captured route alternatives were built from the replayed Rifle Club
     # origin. Every other address remains live and is never snapped there.
-    scenario_replay = settings.replay and replay.is_scenario_query(q)
+    scenario_replay = runtime.is_replay() and replay.is_scenario_query(q)
     use_mapbox = (
         settings.location_provider.strip().lower() == "mapbox"
         and not scenario_replay
@@ -647,7 +647,7 @@ async def plan_safe_route(
 
     session.destination = target
 
-    scenario_replay = settings.replay and replay.is_scenario_query(session.query)
+    scenario_replay = runtime.is_replay() and replay.is_scenario_query(session.query)
     use_mapbox = settings.route_provider.strip().lower() == "mapbox"
     if use_mapbox:
         routes, rres = await mapbox.plan_routes(
@@ -659,7 +659,7 @@ async def plan_safe_route(
             (session.place.lat, session.place.lon),
             (target.lat, target.lon),
             bypass_replay=(
-                settings.replay
+                runtime.is_replay()
                 and settings.live_location_in_replay
                 and not scenario_replay
             ),

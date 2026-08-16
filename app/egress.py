@@ -21,6 +21,7 @@ from enum import Enum
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 
+from app import runtime
 from app.config import ALLOWED_HOSTS, settings
 
 # curl exits 56 when the CONNECT tunnel is refused, which is how a *host*-level
@@ -221,7 +222,7 @@ class Egress:
         # Replay serves recorded bytes, but never for a policy probe: the
         # containment demonstration must be a real refusal from OpenShell in
         # every mode. A fixture that said "blocked" would prove nothing.
-        if settings.replay and not policy_probe and not bypass_replay:
+        if runtime.is_replay() and not policy_probe and not bypass_replay:
             from app import replay
 
             fixture = replay.lookup(url)

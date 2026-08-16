@@ -9,7 +9,7 @@ import pytest
 
 from app import agent as agent_module
 from app import skill_memory, store
-from app.models import Record, RouteCandidate, SourceId
+from app.models import EvacLevel, Record, RouteCandidate, SourceId, Verdict
 from app.session import EvacuationSession
 
 
@@ -126,6 +126,34 @@ def test_objective_report_excludes_address_geometry_and_user_text():
     assert "private home address" not in serialized
     assert "coordinates" not in serialized
     assert "query" not in report
+
+
+def test_skill_can_notice_missing_or_unneeded_planning_without_deciding_safety():
+    actionable = EvacuationSession(
+        verdict=Verdict(
+            recommended_action="Leave",
+            headline="Level 2",
+            level=EvacLevel.LEVEL_2,
+        )
+    )
+    no_evacuation = EvacuationSession(
+        routes=[_route("route-a", approved=True, margin=3.0)],
+        verdict=Verdict(
+            recommended_action="Stay",
+            headline="No active evacuation zone",
+            level=EvacLevel.NONE,
+        ),
+    )
+
+    actionable_codes = skill_memory.route_skill.eligible_codes(
+        skill_memory.route_skill.objective_report(actionable)
+    )
+    no_evacuation_codes = skill_memory.route_skill.eligible_codes(
+        skill_memory.route_skill.objective_report(no_evacuation)
+    )
+
+    assert "complete_actionable_plan" in actionable_codes
+    assert "avoid_unneeded_route" in no_evacuation_codes
 
 
 def test_missing_skill_and_database_fail_open(tmp_path, monkeypatch):

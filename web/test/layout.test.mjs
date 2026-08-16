@@ -53,3 +53,11 @@ test('source evidence leads with plain-language meaning', () => {
   assert.match(app, /secondary emergency-traffic check failed/)
   assert.match(app, /DEMO DATA/)
 })
+
+test('replay and live modes can be switched without mixing plan state', () => {
+  assert.match(app, /aria-label="Data mode"/)
+  assert.match(app, /switchMode\('replay'\)/)
+  assert.match(app, /switchMode\('live'\)/)
+  assert.match(app, /switching modes clears the current plan/i)
+  assert.match(app, /health\?\.replay/)
+})

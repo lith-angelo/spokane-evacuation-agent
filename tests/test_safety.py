@@ -501,6 +501,20 @@ class TestRouteValidation:
         assert result.air_quality.max_pm25 == 55.0
         assert "PM2.5 reaches 55.0" in result.air_quality_warning
 
+    def test_healthy_pm25_does_not_label_an_unhealthy_segment(self):
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(),
+            air_quality_readings=[pm25(18.4)],
+        )
+
+        result = validate_route(route("route-clean-air", SAFE_COORDS), ctx)
+
+        assert result.air_quality.status == "available"
+        assert result.air_quality.max_pm25 == 18.4
+        assert result.air_quality.unhealthy_segment is None
+        assert result.air_quality_warning is None
+
     def test_elevated_pm25_rejects_route_for_medical_household(self):
         ctx = HazardContext(
             *ORIGIN,
@@ -822,6 +836,39 @@ class TestConsensus:
         )
         c = evaluate_consensus(ctx)
         assert c.level is not EvacLevel.LEVEL_2
+
+    def test_stale_nearby_fire_does_not_create_a_level_2(self):
+        """Old perimeter context must not be presented as a current evacuation level."""
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(),
+            zone=None,
+            zones=[],
+            incidents=[incident(distance_km=0.0, age_s=99999, ttl=3600)],
+            sources=[ok(SourceId.SREC), ok(SourceId.WFIGS)],
+        )
+
+        c = evaluate_consensus(ctx)
+
+        assert c.level is EvacLevel.NONE
+        assert not any("inside the mapped perimeter" in item for item in c.conflicts)
+
+    def test_no_evacuation_does_not_present_a_shelter_or_route(self):
+        ctx = HazardContext(
+            *ORIGIN,
+            needs=HouseholdNeeds(),
+            zone=zone(EvacLevel.NONE),
+            zones=[zone(EvacLevel.NONE)],
+            shelters=[shelter("Fairgrounds", [])],
+            routes=[route("route-A", SAFE_COORDS)],
+            sources=[ok(SourceId.SREC), ok(SourceId.WFIGS)],
+        )
+
+        verdict, *_ = decide(ctx)
+
+        assert verdict.level is EvacLevel.NONE
+        assert verdict.destination is None
+        assert verdict.route_summary is None
 
     def test_being_inside_a_perimeter_is_phrased_as_such(self):
         ctx = HazardContext(

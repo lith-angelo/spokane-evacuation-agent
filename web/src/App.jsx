@@ -73,7 +73,7 @@ function sourceSummary(source) {
       return `${fresh} recent satellite heat ${fresh === 1 ? 'detection was' : 'detections were'} found nearby.`
     case 'SREC':
       if (!count) return 'No matching local evacuation, shelter, or emergency-facility records were returned.'
-      return `${count} local emergency records were checked for evacuation zones and suitable destinations.`
+      return `${count} local emergency records were checked for evacuation information.`
     case 'WSDOT':
       if (!count) return 'No matching state road alerts or closures were found nearby.'
       return `${count} state road ${count === 1 ? 'alert was' : 'alerts were'} checked for closures affecting the route.`
@@ -216,6 +216,28 @@ export default function App() {
       setState(result)
     })
 
+  const switchMode = (nextMode) => {
+    if (!health || health.mode === nextMode) return
+    act(`Switching to ${nextMode}`, async () => {
+      esRef.current?.close()
+      await api('/api/mode', {
+        method: 'POST',
+        body: JSON.stringify({ mode: nextMode }),
+      })
+      setState(null)
+      setMonitoring(false)
+      setSuggestions([])
+      setGeocodeStatus('')
+      if (nextMode === 'replay') {
+        skipGeocode.current = true
+        setQuery(PRESET.query)
+        setNeeds(PRESET.needs)
+        setLocationResolved(true)
+      }
+      setHealth(await api('/api/health'))
+    })
+  }
+
   const ask = (label, message) =>
     act(label, async () => {
       const r = await api(`/api/session/${state.session_id}/message`, {
@@ -266,11 +288,29 @@ export default function App() {
 
         {health && (
           <>
-            <span className={`chip ${health.replay ? 'warn' : 'good'}`}>
-              <span className="dot" />
-              {health.replay ? 'REPLAY' : 'LIVE'}
-              {health.replay && health.scenario ? ` · ${health.scenario.name}` : ''}
-            </span>
+            <div className="mode-toggle" aria-label="Data mode">
+              <button
+                type="button"
+                className={health.replay ? 'active replay' : ''}
+                aria-pressed={health.replay}
+                onClick={() => switchMode('replay')}
+                disabled={busy}
+              >
+                REPLAY
+              </button>
+              <button
+                type="button"
+                className={!health.replay ? 'active live' : ''}
+                aria-pressed={!health.replay}
+                onClick={() => switchMode('live')}
+                disabled={busy}
+              >
+                LIVE
+              </button>
+            </div>
+            {health.replay && health.scenario && (
+              <span className="chip warn">{health.scenario.name}</span>
+            )}
             <span className={`chip ${health.policy_enforced ? 'good' : 'bad'}`}>
               <span className="dot" />
               OpenShell {health.policy_enforced ? 'enforcing' : 'NOT enforcing'}
@@ -305,17 +345,23 @@ export default function App() {
               <button className="btn sm" onClick={toggleMonitor} disabled={busy}>
                 {monitoring ? '■ Stop monitor' : '▶ Start monitor'}
               </button>
-              <button className="btn sm destructive" onClick={triggerClosure} disabled={busy}>
-                ⚡ Simulate road closure
-              </button>
+              {health?.replay && (
+                <button className="btn sm destructive" onClick={triggerClosure} disabled={busy}>
+                  ⚡ Simulate road closure
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </header>
 
       <div className="demo-safety-notice" role="note">
-        <strong>Hackathon prototype.</strong> Use synthetic household and contact data only.
-        No real alerts or messages are sent; this is not 911 or certified navigation.
+        <strong>Hackathon prototype.</strong>{' '}
+        {health?.replay
+          ? 'Replay uses a deterministic fire scenario; switching modes clears the current plan. '
+          : 'Live mode queries allowed public data sources; switching modes clears the current plan. '}
+        Use synthetic household and contact data only. No real alerts or messages are sent;
+        this is not 911 or certified navigation.
       </div>
 
       <div className="main">

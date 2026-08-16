@@ -26,8 +26,8 @@ from openai import AsyncOpenAI
 
 from app import tools
 from app.config import settings
-from app.models import StepKind
-from app.safety import decide
+from app.models import EvacLevel, StepKind
+from app.safety import decide, evaluate_consensus
 from app.session import EvacuationSession
 from app.skill_memory import CANONICAL_LESSONS, route_skill
 from app.tools import TOOL_SCHEMAS
@@ -60,6 +60,9 @@ not pretend you have the information. Report it as unavailable and continue.
 7. Never recommend returning home without an explicit clearance from \
 check_hazmat_clearance. A downgrade is not a clearance.
 8. If data is missing or stale, say the recommendation cannot be fully verified.
+9. Shelter search and route generation are evacuation actions. Only call them
+for a confirmed or conservatively derived Level 1, 2, or 3. For No active zone
+or Unknown, report the status and gaps without generating an evacuation route.
 
 RESPONSE STYLE
 Lead with the action. Then the destination, then the route, then why it was \
@@ -177,7 +180,7 @@ class Agent:
                 except ValueError:
                     args = {}
 
-                result, ms_taken = await tools.call(session, name, args)
+                result, ms_taken = await self._call_model_tool(session, name, args)
                 called.add(name)
                 self._trace_tool(session, name, args, result, ms_taken)
 
@@ -217,11 +220,19 @@ class Agent:
         latency_ms: int,
     ) -> None:
         blocked = bool(result.get("blocked")) or result.get("status") == "blocked"
-        kind = StepKind.BLOCKED if blocked else StepKind.TOOL
+        planning_skipped = bool(result.get("planning_skipped"))
+        kind = (
+            StepKind.BLOCKED
+            if blocked
+            else (StepKind.GUARD if planning_skipped else StepKind.TOOL)
+        )
 
         if blocked:
             detail = result.get("reason") or result.get("detail") or "refused by policy"
             outcome = "BLOCKED"
+        elif planning_skipped:
+            detail = str(result.get("reason") or "planning not required")
+            outcome = "skipped"
         elif "error" in result:
             detail = str(result["error"])
             outcome = "error"
@@ -237,6 +248,32 @@ class Agent:
             outcome=outcome,
             latency_ms=latency_ms,
         )
+
+    async def _call_model_tool(
+        self, session: EvacuationSession, name: str, args: dict[str, Any]
+    ) -> tuple[dict[str, Any], int]:
+        """Skip planning compute when the deterministic status is non-actionable."""
+        if name in {"find_shelters", "plan_safe_route", "validate_route"}:
+            # A status tool sets consensus. If it has not run yet, the normal
+            # hard-rule backfill will do so; do not guess from an empty session.
+            if session.consensus is not None:
+                preliminary, *_ = decide(tools._ctx(session))
+                if preliminary.level not in (
+                    EvacLevel.LEVEL_1,
+                    EvacLevel.LEVEL_2,
+                    EvacLevel.LEVEL_3,
+                ):
+                    return (
+                        {
+                            "planning_skipped": True,
+                            "reason": (
+                                f"{preliminary.level.label}: no evacuation route "
+                                "is required, so the safety guard skipped this tool"
+                            ),
+                        },
+                        0,
+                    )
+        return await tools.call(session, name, args)
 
     def _summarize(self, name: str, result: dict[str, Any]) -> str:
         """One line for the activity panel — outputs, never deliberation."""
@@ -293,18 +330,58 @@ class Agent:
                 outcome="backfilled",
                 latency_ms=ms_taken,
             )
+            called.add(name)
+
+        # Tool choice is useful for flexibility, but completion of an active
+        # evacuation plan is not optional. For Levels 1–3 the deterministic
+        # layer finishes shelter selection, route generation and validation
+        # even when the model stops early or omits one of those tools.
+        consensus = evaluate_consensus(tools._ctx(session))
+        session.consensus = consensus
+        preliminary_verdict, *_ = decide(tools._ctx(session))
+        actionable = preliminary_verdict.level in (
+            EvacLevel.LEVEL_1,
+            EvacLevel.LEVEL_2,
+            EvacLevel.LEVEL_3,
+        )
+        if actionable and not session.shelters:
+            await self._guard_tool(
+                session,
+                "find_shelters",
+                "find_shelters (evacuation plan enforced)",
+            )
+        if actionable and session.destination is not None and not session.routes:
+            await self._guard_tool(
+                session,
+                "plan_safe_route",
+                "plan_safe_route (evacuation plan enforced)",
+            )
 
         # A verdict that recommends a destination needs a validated route behind
         # it, whether or not the model asked for one.
-        if session.routes and not session.approved_routes and not session.rejected_routes:
-            result, ms_taken = await tools.call(session, "validate_route", {})
-            session.step(
-                StepKind.GUARD,
-                "validate_route (guard enforced)",
-                detail=self._summarize("validate_route", result),
-                outcome="backfilled",
-                latency_ms=ms_taken,
+        if actionable and session.routes and not session.approved_routes and not session.rejected_routes:
+            await self._guard_tool(
+                session,
+                "validate_route",
+                "validate_route (evacuation plan enforced)",
             )
+
+    async def _guard_tool(
+        self, session: EvacuationSession, name: str, label: str
+    ) -> dict[str, Any]:
+        result, ms_taken = await tools.call(session, name, {})
+        session.step(
+            StepKind.GUARD,
+            label,
+            detail=(
+                self._summarize(name, result)
+                if "error" not in result
+                else str(result["error"])
+            ),
+            outcome="backfilled" if "error" not in result else "error",
+            latency_ms=ms_taken,
+        )
+        return result
 
     def _finalize(self, session: EvacuationSession, prose: str | None) -> None:
         """The guard writes the verdict. This is the only place it is set."""
@@ -312,23 +389,36 @@ class Agent:
         ctx = tools._ctx(session)
         verdict, approved, rejected, eligible, rejected_shelters = decide(ctx)
 
-        session.approved_routes = approved
-        session.rejected_routes = rejected
+        actionable = verdict.level in (
+            EvacLevel.LEVEL_1,
+            EvacLevel.LEVEL_2,
+            EvacLevel.LEVEL_3,
+        )
+        session.approved_routes = approved if actionable else []
+        session.rejected_routes = rejected if actionable else []
         session.rejected_shelters = rejected_shelters
-        session.current_route = approved[0] if approved else None
-        if eligible:
+        session.current_route = approved[0] if actionable and approved else None
+        if actionable and eligible:
             session.destination = eligible[0]
+        else:
+            session.destination = None
+            session.shelters = []
+            session.rejected_shelters = []
         session.verdict = verdict
 
-        if prose:
+        # A model-written summary adds value for an actionable evacuation, but
+        # it is unnecessary risk for Level 0/Unknown where a stray phrase can
+        # turn stale context into an apparent alert. The deterministic verdict
+        # and provenance remain complete without it.
+        if prose and actionable:
             session.verdict.narrative = prose
 
         session.step(
             StepKind.GUARD,
             "Safety guard produced the verdict",
             detail=(
-                f"{verdict.level.label} · {len(approved)} route(s) approved, "
-                f"{len(rejected)} rejected · "
+                f"{verdict.level.label} · {len(session.approved_routes)} route(s) approved, "
+                f"{len(session.rejected_routes)} rejected · "
                 f"{len(verdict.critical_warnings)} warning(s), "
                 f"{len(verdict.unverified)} unverified item(s)"
             ),
@@ -341,7 +431,7 @@ class Agent:
 
     def _schedule_reflection(self, session: EvacuationSession) -> None:
         """Start a best-effort critic pass without delaying the evacuation answer."""
-        if not settings.skill_memory_enabled or not session.routes:
+        if not settings.skill_memory_enabled:
             return
         # Snapshot the objective facts now. A later request may reuse and mutate
         # the same session while this background critic is still running.
@@ -422,13 +512,17 @@ class Agent:
             )
             session.persist()
 
-    async def shutdown(self) -> None:
-        """Cancel advisory work during process shutdown; safety work is already done."""
+    async def cancel_reflections(self) -> None:
+        """Cancel advisory work before changing the runtime data boundary."""
         tasks = list(self._reflection_tasks)
         for task in tasks:
             task.cancel()
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def shutdown(self) -> None:
+        """Cancel advisory work during process shutdown; safety work is already done."""
+        await self.cancel_reflections()
 
 
 agent = Agent()

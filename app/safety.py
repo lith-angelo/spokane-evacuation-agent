@@ -150,26 +150,35 @@ def evaluate_consensus(ctx: HazardContext) -> Consensus:
 
     declared = ctx.zone.level if ctx.zone else (EvacLevel.NONE if srec_ok else EvacLevel.UNKNOWN)
 
-    nearest = min(
-        (i for i in ctx.incidents if i.distance_km is not None),
-        key=lambda i: i.distance_km,
+    nearest_fresh = min(
+        (
+            incident
+            for incident in ctx.incidents
+            if incident.distance_km is not None and not incident.record.stale
+        ),
+        key=lambda incident: incident.distance_km,
         default=None,
     )
 
     # A fresh perimeter close by with no zone published is the disagreement that
     # matters most, and the one a single-source lookup would never surface.
-    if wfigs_ok and nearest is not None and nearest.distance_km <= UNZONED_PROXIMITY_KM:
+    nearby_fresh_fire = (
+        wfigs_ok
+        and nearest_fresh is not None
+        and nearest_fresh.distance_km <= UNZONED_PROXIMITY_KM
+    )
+    if nearby_fresh_fire:
         if declared in (EvacLevel.NONE, EvacLevel.UNKNOWN):
             # A distance of zero means the point is *inside* the mapped
             # perimeter. "0.0 km away" is technically true and completely
             # useless to someone deciding whether to leave.
             where = (
-                f"This address is inside the mapped perimeter of {nearest.name}"
-                if nearest.distance_km < 0.05
-                else f"{nearest.name} is {nearest.distance_km:.1f} km away"
+                f"This address is inside the mapped perimeter of {nearest_fresh.name}"
+                if nearest_fresh.distance_km < 0.05
+                else f"{nearest_fresh.name} is {nearest_fresh.distance_km:.1f} km away"
             )
             conflicts.append(
-                f"{where} ({nearest.record.as_of}), but no evacuation zone is "
+                f"{where} ({nearest_fresh.record.as_of}), but no evacuation zone is "
                 "published for this location. Absence of a zone is not an all-clear."
             )
 
@@ -191,11 +200,7 @@ def evaluate_consensus(ctx: HazardContext) -> Consensus:
     # the area is safe, not more, and an escalation that only fires when every
     # source answered is an escalation that fails exactly when it is needed.
     level = declared
-    if (
-        declared in (EvacLevel.NONE, EvacLevel.UNKNOWN)
-        and nearest is not None
-        and nearest.distance_km <= UNZONED_PROXIMITY_KM
-    ):
+    if declared in (EvacLevel.NONE, EvacLevel.UNKNOWN) and nearby_fresh_fire:
         level = EvacLevel.LEVEL_2
 
     if len(checked) < 2:
@@ -562,6 +567,11 @@ def validate_route(
             )
     else:
         route.air_quality_warning = None
+        # The assessment still records the maximum and source, but a location
+        # is not an "unhealthy segment" unless the configured threshold was
+        # actually exceeded. Keeping a harmless sample position in this field
+        # invites the model and UI to overstate healthy evidence.
+        route.air_quality.unhealthy_segment = None
 
     if reasons:
         route.approved = False
@@ -698,8 +708,13 @@ def decide(ctx: HazardContext) -> tuple[Verdict, list[RouteCandidate], list[Rout
 
     # Gate 1: Level 3 leads with the instruction, and does not wait on routing.
     urgent = level is EvacLevel.LEVEL_3
-    destination = eligible[0] if eligible else None
-    route = approved_routes[0] if approved_routes else None
+    actionable = level in (
+        EvacLevel.LEVEL_1,
+        EvacLevel.LEVEL_2,
+        EvacLevel.LEVEL_3,
+    )
+    destination = eligible[0] if actionable and eligible else None
+    route = approved_routes[0] if actionable and approved_routes else None
 
     if urgent:
         action = "LEAVE NOW."
@@ -750,7 +765,7 @@ def decide(ctx: HazardContext) -> tuple[Verdict, list[RouteCandidate], list[Rout
                 + ". Do not improvise around this — call 911 for evacuation assistance."
             )
 
-    if not eligible and ctx.shelters:
+    if actionable and not eligible and ctx.shelters:
         warnings.append(
             "No shelter meets every hard requirement for this household "
             f"({ctx.needs.describe()}). "
